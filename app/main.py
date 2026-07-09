@@ -44,31 +44,40 @@ dp.include_router(admin.router)
 @asynccontextmanager 
 async def lifespan(app: FastAPI): 
     webhook_url = f"{settings.BASE_URL}/webhook"
-    await bot.set_webhook(
-        url=webhook_url,
-        drop_pending_updates=True,
-        allowed_updates=dp.resolve_used_update_types() 
-    )
+    try:
+        await bot.set_webhook(
+            url=webhook_url,
+            drop_pending_updates=True,
+            allowed_updates=dp.resolve_used_update_types() 
+        )
 
-    await bot.set_my_commands(
-        [
-            BotCommand(command="register", description="Register"),
-            BotCommand(command="join", description="Join game"),
-            BotCommand(command="start_game", description="Start game"),
-            BotCommand(command="rating", description="Leaderboard"),
-            BotCommand(command="stats", description="Your stats"),
-            BotCommand(command="knockout", description=" You are eliminator"),
-            BotCommand(command="chips", description="Set chips"),
-            BotCommand(command="finish", description="Finish table"),
-            BotCommand(command="leave", description="Leave game"),
-            BotCommand(command="game_list", description="Your game players"),
-            BotCommand(command="help", description="Help"),
-        ]
-    )
-    
+        await bot.set_my_commands(
+            [
+                BotCommand(command="register", description="Register"),
+                BotCommand(command="join", description="Join game"),
+                BotCommand(command="start_game", description="Start game"),
+                BotCommand(command="rating", description="Leaderboard"),
+                BotCommand(command="stats", description="Your stats"),
+                BotCommand(command="knockout", description=" You are eliminator"),
+                BotCommand(command="chips", description="Set chips"),
+                BotCommand(command="finish", description="Finish table"),
+                BotCommand(command="leave", description="Leave game"),
+                BotCommand(command="game_list", description="Your game players"),
+                BotCommand(command="help", description="Help"),
+            ]
+        )
+
+        logger.info("Telegram webhook configured")
+
+    except Exception:
+        logger.exception("Failed to configure Telegram webhook")
+
     yield
-    
-    await bot.delete_webhook()
+
+    try:
+        await bot.delete_webhook()
+    except Exception:
+        logger.exception("Failed to delete webhook")
     await bot.session.close()
 
 app = FastAPI(
