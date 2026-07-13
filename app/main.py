@@ -19,9 +19,9 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.types import Update, BotCommand
 
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-
 
 formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
@@ -44,40 +44,37 @@ dp.include_router(admin.router)
 @asynccontextmanager 
 async def lifespan(app: FastAPI): 
     webhook_url = f"{settings.BASE_URL}/webhook"
-    try:
-        await bot.set_webhook(
-            url=webhook_url,
-            drop_pending_updates=True,
-            allowed_updates=dp.resolve_used_update_types() 
-        )
 
-        await bot.set_my_commands(
-            [
-                BotCommand(command="register", description="Register"),
-                BotCommand(command="join", description="Join game"),
-                BotCommand(command="start_game", description="Start game"),
-                BotCommand(command="rating", description="Leaderboard"),
-                BotCommand(command="stats", description="Your stats"),
-                BotCommand(command="knockout", description=" You are eliminator"),
-                BotCommand(command="chips", description="Set chips"),
-                BotCommand(command="finish", description="Finish table"),
-                BotCommand(command="leave", description="Leave game"),
-                BotCommand(command="game_list", description="Your game players"),
-                BotCommand(command="help", description="Help"),
-            ]
-        )
+    await bot.set_webhook(
+        url=webhook_url,
+        drop_pending_updates=True,
+        allowed_updates=dp.resolve_used_update_types() 
+    )
 
-        logger.info("Telegram webhook configured")
+    await bot.set_my_commands(
+        [
+            BotCommand(command="register", description="Register"),
+            BotCommand(command="join", description="Join game"),
+            BotCommand(command="start_game", description="Start game"),
+            BotCommand(command="rating", description="Leaderboard"),
+            BotCommand(command="stats", description="Your stats"),
+            BotCommand(command="knockout", description=" You are eliminator"),
+            BotCommand(command="chips", description="Set chips"),
+            BotCommand(command="finish", description="Finish table"),
+            BotCommand(command="leave", description="Leave game"),
+            BotCommand(command="game_list", description="Your game players"),
+            BotCommand(command="help", description="Help"),
+        ]
+    )
 
-    except Exception:
-        logger.exception("Failed to configure Telegram webhook")
+    logger.info("Telegram webhook configured")
 
     yield
 
-    try:
-        await bot.delete_webhook()
-    except Exception:
-        logger.exception("Failed to delete webhook")
+
+    await bot.delete_webhook()
+
+
     await bot.session.close()
 
 app = FastAPI(
@@ -103,8 +100,10 @@ async def bot_webhook(
     session: AsyncSession = Depends(get_db),
 ):
     try:
+        print(update)
         tg_update = Update.model_validate(update, context={"bot": bot})
         await dp.feed_update(bot, tg_update, session=session)
+    
 
     except Exception as e:
         logging.error(f"Error processing update: {e}")

@@ -13,3 +13,4 @@ requests
 aiogram
 httpx
 numpy
+aiohttp-socks
