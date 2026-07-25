@@ -10,3 +10,4 @@ config/
 *.log
 *app.log*
 **/config.py
+docker-compose.yml
