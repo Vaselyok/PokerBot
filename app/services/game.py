@@ -223,7 +223,7 @@ async def distribute_tables(session, game_id, user_id):
 
     await add_table_players(session=session, table=new_table, size_list=tables_size_list, players=players)
 
-    fictitious_distribution = await  fictitious_table_players(players, tables_size_list, new_table.id, round_number)
+    fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id, round_number)
     '''
     await session.commit()
     session.expire_all()
