@@ -26,4 +26,4 @@ class TablePlayer(BaseModel):
         "Player", foreign_keys=[eliminated_by_id], back_populates="eliminations"
     )
 
-    __table_args__ = (UniqueConstraint("table_id", "player_id"),)
+    __table_args__ = ()

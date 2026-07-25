@@ -7,7 +7,6 @@ class Table(BaseModel):
     __tablename__ = "tables"
 
     number = Column(Integer, nullable=False)
-    round = Column(Integer, nullable=False)
 
     started_at = Column(DateTime(timezone=True), nullable=True)
     finished_at = Column(DateTime(timezone=True), nullable=True)
@@ -19,4 +18,4 @@ class Table(BaseModel):
 
     elo_history = relationship("EloHistory", back_populates="table")
 
-    __table_args__ = (UniqueConstraint("game_id", "number", "round"),)
+    __table_args__ = ()

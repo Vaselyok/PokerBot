@@ -81,7 +81,6 @@ class TablePlayerDistribute(BaseModel):
 class TableDistribute(BaseModel):
     id: int
     number: int
-    round: int
     players: list[TablePlayerDistribute]
 
 

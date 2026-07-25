@@ -125,7 +125,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
 
     open_tables = await open_tables_count(session, table)
 
-    if table.round == 1 and open_tables == 1:
+    if open_tables == 1:
         game.status = GameStatus.FINISHED
         game.is_archived = True
 

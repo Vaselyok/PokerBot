@@ -22,7 +22,6 @@ from dataclasses import dataclass
 @dataclass
 class NewTablesDTO:
     total_tables: int
-    round: int
 
 
 async def check_game_by_id(session, id):
@@ -189,11 +188,6 @@ async def distribute_tables(session, game_id, user_id):
         session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
     )
     tables = tables.items
-    if not tables:
-        round_number = 1
-    
-    if any(t.round == 1 for t in tables):
-        raise ApplicationException("The max round-numbers is one, cannot start new round", 400)
 
     game.start_time = datetime.now(timezone.utc)
     game.status = GameStatus.IN_ACTION
@@ -209,13 +203,12 @@ async def distribute_tables(session, game_id, user_id):
     
     '''
     new_table_item = NewTablesDTO(
-        total_tables=len(tables_size_list), round=round_number
+        total_tables=len(tables_size_list)
     )
     new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
     '''
 
-    new_table = await add_table(session, game_id, 1, round_number)
-
+    new_table = await add_table(session, game_id, 1)
     sorting = {"elo": ("elo",)}
     players = await get_game_players(
         session=session, game_id=game_id, limit=100, offset=0, sort="-elo", sorting_rules=sorting
@@ -223,7 +216,7 @@ async def distribute_tables(session, game_id, user_id):
 
     await add_table_players(session=session, table=new_table, size_list=tables_size_list, players=players)
 
-    fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id, round_number)
+    fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
     '''
     await session.commit()
     session.expire_all()
@@ -244,7 +237,7 @@ def split_tables(players: int, max_per_table: int):
     return result
 
 
-async def fictitious_table_players(players, size_list, real_table_id, round_val):
+async def fictitious_table_players(players, size_list, real_table_id):
     start = 0
     tables_distribution = []
     flat_players = players.items
@@ -266,7 +259,6 @@ async def fictitious_table_players(players, size_list, real_table_id, round_val)
         tables_distribution.append(TableDistribute(
             id=real_table_id, 
             number=idx,       
-            round=round_val,
             players=current_table_players
         ))
             
@@ -290,7 +282,6 @@ async def build_distribute_response(game, tables):
             TableDistribute(
                 id=table.id,
                 number=table.number,
-                round=table.round,
                 players=[
                     TablePlayerDistribute(
                         id=tp.player.id,

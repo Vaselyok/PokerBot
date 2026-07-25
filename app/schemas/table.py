@@ -45,14 +45,12 @@ class TableResponse(BaseModel):
     
 class TablesAddRequest(BaseModel):
     total_tables: int = Field(gt=0)
-    round: Literal[1, 2]
     model_config = {"extra": "forbid"}
 
 
 class TablePatchRequest(BaseModel):
     started_at: datetime | None = None
     finished_at: datetime | None = None
-    round: int | None = Field(None, gt=0)
 
     model_config = {"extra": "forbid"}
 

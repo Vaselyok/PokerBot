@@ -84,7 +84,6 @@ app = FastAPI(
     openapi_url=None 
 )
 
-
 app.middleware("http")(log_requests)
 app.include_router(table_player_router)
 app.include_router(player_router)

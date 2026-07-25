@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     BigInteger
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from enum import Enum
 
@@ -48,6 +49,8 @@ class Game(BaseModel):
 
     telegram_chat_id = Column(BigInteger, ForeignKey("telegram_chats.chat_id"), nullable=True)
     telegram_chat = relationship("TelegramChat", back_populates="games")
+
+    poll = Column(JSONB, nullable=True)
     
 
 class GamePlayer(BaseModel):
@@ -65,4 +68,4 @@ class GamePlayer(BaseModel):
         default=Status.JOINED,
     )
 
-    __table_args__ = (UniqueConstraint("player_id", "game_id"),)
+    __table_args__ = ()
