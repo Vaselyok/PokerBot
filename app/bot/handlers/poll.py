@@ -3,8 +3,6 @@ from aiogram.types import PollAnswer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.config import ApplicationException
-
-from app.models.poll import Poll
 from app.models.game import Game
 
 from app.services.player import (
