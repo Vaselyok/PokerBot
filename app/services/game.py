@@ -94,7 +94,7 @@ async def change_game(session, id, item, user_id):
 
 
 async def join_game(session, game_id, player_id):
-    await check_game_by_id(session, game_id)
+    game = await check_game_by_id(session, game_id)
 
     in_game = await is_player_in_game(session, player_id, game_id)
 
@@ -117,6 +117,15 @@ async def join_game(session, game_id, player_id):
     
     try:
         await add_to_game(session=session, game_id=game_id, player_id=player_id)
+        # тут надо написать если game.status == IN_ACTION то добавить его за стол
+        # sorting_rules = {"number": ("number",)}
+        # tables = await get_all_tables(
+        #     session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
+        # )
+        # tables = tables.items
+        # for table in tables:
+        #       table_players = await get_all_table_players_by_id(session, table.id)
+        # table_player = await add_table_player(session, table_id, player_id)
 
     except IntegrityError as e:
         raise ApplicationException(f"SQL Error: {e}", 400)
@@ -183,47 +192,43 @@ async def distribute_tables(session, game_id, user_id):
     if game.organizer_id != user_id:
         raise ApplicationException("Only organizer can distribute tables", 400)
     
-    sorting_rules = {"number": ("number",)}
-    tables = await get_all_tables(
-        session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
-    )
-    tables = tables.items
+    # sorting_rules = {"number": ("number",)}
+    # tables = await get_all_tables(
+    #     session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
+    # )
+    # tables = tables.items
 
     game.start_time = datetime.now(timezone.utc)
     game.status = GameStatus.IN_ACTION
 
-
     players_number = await get_game_players_count(session, game_id)
 
-    if players_number < 20:
-        tables_size_list = split_tables(players=players_number, max_per_table=6)
 
-    else:
-        tables_size_list = split_tables(players=players_number, max_per_table=8)
+    tables_size_list = split_tables(players=players_number, max_per_table=8)
     
-    '''
     new_table_item = NewTablesDTO(
         total_tables=len(tables_size_list)
     )
     new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
-    '''
 
-    new_table = await add_table(session, game_id, 1)
+
+    #new_table = await add_table(session, game_id, 1)
     sorting = {"elo": ("elo",)}
     players = await get_game_players(
-        session=session, game_id=game_id, limit=100, offset=0, sort="-elo", sorting_rules=sorting
+        session=session, game_id=game_id, limit=1000, offset=0, sort="-elo", sorting_rules=sorting
     )
 
-    await add_table_players(session=session, table=new_table, size_list=tables_size_list, players=players)
 
-    fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
-    '''
+    await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
+
+    #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
+
     await session.commit()
     session.expire_all()
     updated_game = await get_game_by_id(session, game_id)
-    '''
 
-    return await build_distribute_response(game, fictitious_distribution)
+
+    return await build_distribute_response(updated_game, new_tables)
 
 
 def split_tables(players: int, max_per_table: int):
@@ -237,6 +242,7 @@ def split_tables(players: int, max_per_table: int):
     return result
 
 
+'''
 async def fictitious_table_players(players, size_list, real_table_id):
     start = 0
     tables_distribution = []
@@ -263,7 +269,8 @@ async def fictitious_table_players(players, size_list, real_table_id):
         ))
             
     return tables_distribution
-
+'''
+'''
 async def build_distribute_response(game, tables_distribution):
     return DistributeTablesResponse(
         game_id=game.id,
@@ -294,4 +301,3 @@ async def build_distribute_response(game, tables):
             for table in tables if table.finished_at is None
         ],
     )
-'''

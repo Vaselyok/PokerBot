@@ -5,6 +5,7 @@ from app.models.table import Table
 from app.models.game import Game
 from app.models.player import Player
 from datetime import datetime, timezone
+import random
 
 
 async def get_table_players_by_id(session, table_id):
@@ -53,6 +54,7 @@ async def add_table_player(session, table_id, player_id):
 
     return table_player
 
+'''
 async def add_table_players(session, table, size_list, players):
     start = 0
     flat_players = players.items
@@ -76,7 +78,7 @@ async def add_table_players(session, table, size_list, players):
 async def add_table_players(session, tables, size_list, players):
     start = 0
     flat_players = players.items
-
+    random.shuffle(flat_players)
     for table, size in zip(tables, size_list):
         for i in range(size):
             player = flat_players[start]
@@ -91,7 +93,7 @@ async def add_table_players(session, tables, size_list, players):
             start += 1
 
     await session.flush()
-'''
+
 
 async def get_table_player_count(session, player_id, game_id):
     result = await session.execute(
