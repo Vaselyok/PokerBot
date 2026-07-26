@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 import app.models_loader
 from app.config.connection import get_db
-from app.bot.handlers import admin, common, player
+from app.bot.handlers import admin, common, player, poll
 from app.config.config import settings
 import logging
 from logging.handlers import RotatingFileHandler
@@ -40,6 +40,7 @@ dp = Dispatcher()
 dp.include_router(common.router)
 dp.include_router(player.router)
 dp.include_router(admin.router)
+dp.include_router(poll.router)
 
 @asynccontextmanager 
 async def lifespan(app: FastAPI): 

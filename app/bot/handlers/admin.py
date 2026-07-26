@@ -206,6 +206,20 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
     name = data["name"]
     chat_id = data["chat_id"]
     thread_id = data["thread_id"]
+
+    #создаем полл
+    poll_message = await bot.send_poll(
+        chat_id=int(chat_id),
+        question=(
+            f"{name} ({day})\n"
+            f"Я секретарь турнира, зарегистрирую вас 🧐\n"
+            "Тыкните если точно придете или в момент прихода"
+        ),
+        options=[
+            "✅ Пришел на турнир, дайте стол"
+        ],
+        is_anonymous=False,
+    )
     
     try:
         
@@ -215,7 +229,7 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
             chat_id=chat_id
         )
         user = await check_player_tg_id(session=session, tg_id=tg_user.id)
-        game = await create_game(session=session, item=item, user_id=user.id)
+        game = await create_game(session=session, item=item, user_id=user.id, poll_id=poll_message.poll.id)
 
     except ApplicationException as e:
         await message.answer(f"⚠️ {e.name}")
@@ -239,11 +253,11 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
         await bot.send_message(
             chat_id=int(chat_id),
             text=(
-                f"<b>📢 New game announcement!</b>\n"
-                f"📆 Day: {day}\n"
-                f"🕗 Time: {time}\n"
-                f"Name: {name}"
-                f' 👉 <a href="{link}">join game</a>'
+                f"<b>📢 Турнир!</b>\n"
+                f"{name}\n"
+                f"📆 Когда: {day}\n"
+                f"🕗 Во сколько: {time}\n"
+                f' 👉 <a href="{link}">зарегистрироваться</a>'
             ),
             message_thread_id=thread_id
         )
