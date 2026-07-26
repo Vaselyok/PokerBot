@@ -50,7 +50,7 @@ class Game(BaseModel):
     telegram_chat_id = Column(BigInteger, ForeignKey("telegram_chats.chat_id"), nullable=True)
     telegram_chat = relationship("TelegramChat", back_populates="games")
 
-    poll = Column(JSONB, nullable=True)
+    #poll = Column(JSONB, nullable=True)
     poll_id = Column(String, nullable=True)
     
 
