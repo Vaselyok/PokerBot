@@ -231,6 +231,45 @@ async def distribute_tables(session, game_id, user_id):
     return await build_distribute_response(updated_game, new_tables)
 
 
+async def distribute_tables_for_shuffle(session, game_id, user_id, players):
+    game = await check_game_by_id(session, game_id)
+
+    if game.organizer_id != user_id:
+        raise ApplicationException("Only organizer can distribute tables", 400)
+    
+    # sorting_rules = {"number": ("number",)}
+    # tables = await get_all_tables(
+    #     session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
+    # )
+    # tables = tables.items
+
+    #game.start_time = datetime.now(timezone.utc)
+    game.status = GameStatus.IN_ACTION
+
+    players_number = len(players)
+
+    tables_size_list = split_tables(players=players_number, max_per_table=8)
+    
+    new_table_item = NewTablesDTO(
+        total_tables=len(tables_size_list)
+    )
+    new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
+
+
+    #new_table = await add_table(session, game_id, 1)
+    sorting = {"elo": ("elo",)}
+
+
+    await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
+
+    #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
+    await session.commit()
+    session.expire_all()
+    updated_game = await get_game_by_id(session, game_id)
+
+    return await build_distribute_response(updated_game, new_tables)
+
+
 def split_tables(players: int, max_per_table: int):
     tables = math.ceil(players / max_per_table)
     

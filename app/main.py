@@ -64,6 +64,7 @@ async def lifespan(app: FastAPI):
             BotCommand(command="finish", description="Finish table"),
             BotCommand(command="leave", description="Leave game"),
             BotCommand(command="game_list", description="Your game players"),
+            BotCommand(command="shuffle", description="shuffle_tables"),
             BotCommand(command="help", description="Help"),
         ]
     )

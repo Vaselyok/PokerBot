@@ -12,6 +12,7 @@ from app.services.player import (
 from app.services.game import join_game, leave_game
 
 from app.schemas.player import PlayerAddRequest
+import datetime
 
 router = Router(name="poll")
 
@@ -60,7 +61,7 @@ async def poll_answer_handler(
     if player is None:
 
         item = PlayerAddRequest(
-            name=poll_answer.user.username
+            name=poll_answer.user.username if poll_answer.user.username else f"Неопознанный орангутанг {datetime.datetime.now().microsecond % 1000}"
         )
 
         player = await create_player(
