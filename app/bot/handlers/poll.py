@@ -81,14 +81,14 @@ async def poll_answer_handler(
             chat_id=poll_answer.user.id,
             text=text.result,
         )
-        if text != "joined":
+        if text.result != "joined":
             # msg = await bot.send_message(
             #     chat_id=game.telegram_chat.chat_id,
             #     text=f"@{poll_answer.user.username}, {text.result}"
             # )
             message_id_with_tables = game.telegram_chat.message_with_tables_id
             # берем новый номер человека
-            text_parts = game.telegram_chat.message_with_tables.split(f"Table {text.split('#')[-1]}:\n")
+            text_parts = game.telegram_chat.message_with_tables.split(f"Table {text.result.split('#')[-1]}:\n")
             text_parts[0] = text_parts[0] + f" - @{poll_answer.user.username}" + "\n"
             await bot.edit_message_text(
                 text=text_parts[0] + text_parts[1],
