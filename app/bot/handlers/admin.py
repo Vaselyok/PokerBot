@@ -321,7 +321,7 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
             text=("\n".join(text)),
             message_thread_id=data.thread_id or None
         )
-        game = get_game_by_id(session, game_id)
+        game = await get_game_by_id(session, game_id)
         game.telegram_chat.message_with_tables_id = message.message_id
         game.telegram_chat.message_with_tables = "\n".join(text)
 
