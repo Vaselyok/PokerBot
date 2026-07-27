@@ -219,13 +219,11 @@ async def distribute_tables(session, game_id, user_id):
         session=session, game_id=game_id, limit=1000, offset=0, sort="-elo", sorting_rules=sorting
     )
 
-
     await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
 
     #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
 
-    await session.commit()
-    session.expire_all()
+    await session.flush()
     updated_game = await get_game_by_id(session, game_id)
 
 
@@ -269,8 +267,7 @@ async def distribute_tables_for_shuffle(session, game_id, user_id, players):
         await add_table_players_no_reorder(session=session, tables=new_tables, size_list=tables_size_list, players=players)
 
     #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
-    await session.commit()
-    session.expire_all()
+    await session.flush()
     updated_game = await get_game_by_id(session, game_id)
 
     return await build_distribute_response(updated_game, new_tables)
