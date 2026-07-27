@@ -82,12 +82,22 @@ async def poll_answer_handler(
             text=text.result,
         )
         if text != "joined":
-            msg = await bot.send_message(
-            chat_id=game.telegram_chat.chat_id,
-            text=f"@{poll_answer.user.username}, {text.result}"
-        )
+            # msg = await bot.send_message(
+            #     chat_id=game.telegram_chat.chat_id,
+            #     text=f"@{poll_answer.user.username}, {text.result}"
+            # )
+            message_id_with_tables = game.telegram_chat.message_with_tables_id
+            # берем новый номер человека
+            text_parts = game.telegram_chat.message_with_tables.split(f"Table {text.split('#')[-1]}:\n")
+            text_parts[0] = text_parts[0] + f" - @{poll_answer.user.username}" + "\n"
+            await bot.edit_message_text(
+                text=text_parts[0] + text_parts[1],
+                chat_id=game.telegram_chat_id,
+                message_id=message_id_with_tables
+            )
 
-        await asyncio.sleep(15)
-        await bot.delete_message(msg.chat.id, msg.message_id)
-    except Exception:
+        #await asyncio.sleep(15)
+        #await bot.delete_message(msg.chat.id, msg.message_id)
+    except Exception as e:
+        print(f"⚠️ {e.name}")
         pass
