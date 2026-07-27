@@ -525,6 +525,8 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         while tables:
             table = tables.pop()
             await delete_table(session, table.table_id, user.id)
+        await session.flush()
+        await session.commit()
         players = get_game_players(session, game.id, 1000, 0, sort=None, sorting_rules=None).items
         players = sorted(players, key=lambda x: x.elo_change_per_match)
         data = distribute_tables_for_shuffle(session, game.id, user.id, players)

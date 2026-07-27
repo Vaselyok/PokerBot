@@ -95,6 +95,25 @@ async def add_table_players(session, tables, size_list, players):
     await session.flush()
 
 
+async def add_table_players_no_reorder(session, tables, size_list, players):
+    start = 0
+    flat_players = players
+    for table, size in zip(tables, size_list):
+        for i in range(size):
+            player = flat_players[start]
+
+            table_player = TablePlayer(
+                table_id=table.id,
+                player_id=player.player_id,
+                started_at=datetime.now(timezone.utc)
+            )
+
+            session.add(table_player)
+            start += 1
+
+    await session.flush()
+
+
 async def get_table_player_count(session, player_id, game_id):
     result = await session.execute(
         select(func.count(TablePlayer.id))
