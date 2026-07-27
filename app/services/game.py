@@ -206,7 +206,7 @@ async def distribute_tables(session, game_id, user_id):
     players_number = await get_game_players_count(session, game_id)
     print("PLAYERS COUNTED")
 
-    tables_size_list = split_tables(players=players_number, max_per_table=8)
+    tables_size_list = split_tables(players=players_number, max_per_table=2)
     
     new_table_item = NewTablesDTO(
         total_tables=len(tables_size_list)
@@ -254,7 +254,7 @@ async def distribute_tables_for_shuffle(session, game_id, user_id, players):
 
     players_number = len(players)
 
-    tables_size_list = split_tables(players=players_number, max_per_table=8)
+    tables_size_list = split_tables(players=players_number, max_per_table=2)
 
     new_table_item = NewTablesDTO(
         total_tables=len(tables_size_list)

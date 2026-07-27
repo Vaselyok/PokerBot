@@ -552,7 +552,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         await message.answer(f"⚠️ Server error - {e}")
         return
 
-    text = ["🔀 Столы перемешали!\n", ""]
+    text = ["🔀 Столы перемешали!", ""]
 
     for table in data.tables:
         text.append(f"Table {table.number}:")
