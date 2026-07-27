@@ -535,7 +535,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
             table = await get_table_by_id(session, table_slepok.id)
             #await delete_table(session, table.id, user.id)
             table.finished_at = datetime.now(timezone.utc)
-            print("TABLE DELETED")
+            print("TABLE FINISHED")
         await session.flush()
         print("AFTER FLUSH")
         players = await get_game_players(session, game.id, 1000, 0, sort=None, sorting_rules=None)

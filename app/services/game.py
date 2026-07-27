@@ -223,7 +223,7 @@ async def distribute_tables(session, game_id, user_id):
     for player in players.items:
         player.player.elo_change_per_match = 0
     session.flush()
-    
+
     await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
     print("TABLE PLAYERS ADDED")
 
@@ -265,7 +265,7 @@ async def distribute_tables_for_shuffle(session, game_id, user_id, players):
 
     #new_table = await add_table(session, game_id, 1)
     sorting = {"elo": ("elo",)}
-    num_hours_from_start = (datetime.now(timezone.utc) - datetime.fromisoformat(game.start_time)).total_seconds() / 3600.0
+    num_hours_from_start = (datetime.now(timezone.utc) - game.start_time).total_seconds() / 3600.0
     # перемешиваем либо вначале либо в конце
     if num_hours_from_start <= 0.7 or num_hours_from_start > 1.7:
         players = ORMListResult(total=players_number,items=players)
