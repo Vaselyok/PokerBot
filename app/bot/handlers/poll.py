@@ -88,9 +88,12 @@ async def poll_answer_handler(
             # )
             print("BEFORE MESSAGE_ID")
             message_id_with_tables = game.telegram_chat.message_with_tables_id
+            print(f"\n OOOOOOOO  {str(message_id_with_tables)}  OOOOOOOOOOOO\n")
             print("AFTER MESSAGE_ID")
             # берем новый номер человека
-            text_parts = game.telegram_chat.message_with_tables.split(f"Table {text.result.split('#')[-1]}:\n")
+            val_to_split_by = f"Table {text.result.split('#')[-1]}:\n"
+            print("AFTER FIRST SPLIT")
+            text_parts = str(game.telegram_chat.message_with_tables).split(val_to_split_by)
             print("SPLITTING DONE")
             text_parts[0] = text_parts[0] + f" - @{poll_answer.user.username}" + "\n"
             await bot.edit_message_text(
