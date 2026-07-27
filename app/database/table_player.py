@@ -166,3 +166,45 @@ async def get_player_chips_map(session, game_id):
     )
 
     return {player_id: chips for player_id, chips in result.all()}
+
+async def get_table_players_for_knockout(session,table_id,current_player_id):
+    result = await session.execute(
+        select(TablePlayer)
+        .options(
+            selectinload(TablePlayer.player)
+        )
+        .where(
+            TablePlayer.table_id == table_id
+        )
+        .where(
+            TablePlayer.is_active.is_(True)
+        )
+    )
+    table_players = result.scalars().all()
+    players = [
+        tp.player
+        for tp in table_players
+        if tp.player_id != current_player_id
+    ]
+    return players
+
+async def reward_survivors(session, table_id):
+    result = await session.execute(
+        select(TablePlayer)
+        .options(
+            selectinload(TablePlayer.player)
+        )
+        .where(
+            TablePlayer.table_id == table_id
+        )
+        .where(
+            TablePlayer.is_active.is_(True)
+        )
+    )
+    alive = result.scalars().all()
+    if not alive:
+        return
+    delta = 1 / len(alive)
+
+    for tp in alive:
+        tp.player.elo_change_per_match += delta
