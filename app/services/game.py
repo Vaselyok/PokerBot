@@ -143,7 +143,7 @@ async def join_game(session, game_id, player_id):
                 for player in table_players:
                     curr_min += player.player.elo_change_per_match
                 print("AFTER CURR MIN")
-                if curr_min < min_change and len(table_players) < 8:
+                if curr_min < min_change and len(table_players) < 2:
                     table_ = table
                     min_change = curr_min
             print("BEFORE ADD TABLE")
