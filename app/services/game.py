@@ -220,6 +220,10 @@ async def distribute_tables(session, game_id, user_id):
         session=session, game_id=game_id, limit=1000, offset=0, sort="-elo", sorting_rules=sorting
     )
 
+    for player in players.items:
+        player.player.elo_change_per_match = 0
+    session.flush()
+    
     await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
     print("TABLE PLAYERS ADDED")
 

@@ -540,7 +540,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         print("AFTER FLUSH")
         players = await get_game_players(session, game.id, 1000, 0, sort=None, sorting_rules=None)
         print("PLAYERS GOT")
-        players = sorted(players.items, key=lambda x: x.elo_change_per_match)
+        players = sorted(players.items, key=lambda x: x.player.elo_change_per_match)
         data = await distribute_tables_for_shuffle(session, game.id, user.id, players)
         print("SHUFFLE DISTRIBUTED")
 
