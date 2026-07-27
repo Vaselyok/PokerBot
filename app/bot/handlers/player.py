@@ -163,24 +163,24 @@ async def cb_join_table(callback: CallbackQuery, session: AsyncSession):
 
     try:
         user = await check_player_tg_id(session=session, tg_id=tg_user.id)
-        await join_game(session=session, game_id=game_id, player_id=user.id)
+        text = await join_game(session=session, game_id=game_id, player_id=user.id)
 
-        status_text = "✅ Joined the game!"
+        status_text = f"✅ Ты в игре!\n 🪑 Твой стол #{text.result.split('#')[-1]}\n (в чате со столами тебя пока не видно, но появишься там при шаффле)"
 
         tables = await get_table_list(
             session=session, limit=50, offset=0, game_id=game_id, organizer_id=None
         )
         items = tables.items or []
 
-        if items:
-            table = items[0]
-            try:
-                await add_player_at_table(session=session, table_id=table.id, player_id=user.id)
-                status_text += f"\n\n🎰 Game already started.\nPlease join any free table🤗!"
-            except Exception as e:
-                status_text += f"\n\n error - {str(e)[:150]}"
-        else:
-            status_text += "\n\n⏳ Waiting for the organizer to start..."
+        # if items:
+            # table = items[0]
+            # try:
+            #     await add_player_at_table(session=session, table_id=table.id, player_id=user.id)
+            #     status_text += f"\n\n🎰 Game already started.\nPlease join any free table🤗!"
+            # except Exception as e:
+            #     status_text += f"\n\n error - {str(e)[:150]}"
+        if not items:
+            status_text += "\n\n⏳ Ждем пока организатор начнет..."
 
         try:
             await callback.message.edit_text(status_text)
