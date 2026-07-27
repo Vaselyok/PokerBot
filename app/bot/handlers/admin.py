@@ -20,6 +20,7 @@ from app.schemas.game import GameAddRequest
 from app.models.game import GameStatus
 from app.bot.states.register import RegisterState
 from app.database.game import get_all_games, get_game_players
+from app.database.table import get_table_by_id
 
 router = Router()
 
@@ -524,12 +525,14 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
             tg_id=tg_user.id,
         )
         game = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id)
+        game = game.items[0]
 
-        tables = await get_table_list(session, 100, 0, game.items[0].id, organizer_id=user.id)
+        tables = await get_table_list(session, 100, 0, game.id, organizer_id=user.id)
         tables = tables.items
         print("TABLES ITEMS")
         while tables:
-            table = tables.pop()
+            table_slepok = tables.pop()
+            table = await get_table_by_id(session, table_slepok.id)
             #await delete_table(session, table.id, user.id)
             table.finished_at = datetime.now(timezone.utc)
             print("TABLE DELETED")
