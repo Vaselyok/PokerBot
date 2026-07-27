@@ -277,8 +277,11 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
     game_name = game_data[2]
 
     try:
+        print("BEFORE USER")
         user = await check_player_tg_id(session=session, tg_id=tg_user.id)
+        print("AFTER USER")
         data = await distribute_tables(session=session, game_id=game_id, user_id=user.id)
+        print("AFTER TABLE DISTRIBUTE")
 
     except ApplicationException as e:
         await callback.answer(e.name, show_alert=True)

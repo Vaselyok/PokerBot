@@ -189,6 +189,7 @@ async def restore_game(session, id, user_id):
 
 async def distribute_tables(session, game_id, user_id):
     game = await check_game_by_id(session, game_id)
+    print("GAME CHECKED")
 
     if game.organizer_id != user_id:
         raise ApplicationException("Only organizer can distribute tables", 400)
@@ -203,7 +204,7 @@ async def distribute_tables(session, game_id, user_id):
     game.status = GameStatus.IN_ACTION
 
     players_number = await get_game_players_count(session, game_id)
-
+    print("PLAYERS COUNTED")
 
     tables_size_list = split_tables(players=players_number, max_per_table=8)
     
@@ -211,7 +212,7 @@ async def distribute_tables(session, game_id, user_id):
         total_tables=len(tables_size_list)
     )
     new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
-
+    print("TABLES ADDED")
 
     #new_table = await add_table(session, game_id, 1)
     sorting = {"elo": ("elo",)}
@@ -220,18 +221,20 @@ async def distribute_tables(session, game_id, user_id):
     )
 
     await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
+    print("TABLE PLAYERS ADDED")
 
     #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
 
     await session.flush()
     updated_game = await get_game_by_id(session, game_id)
-
+    print("AFTER FLUSH")
 
     return await build_distribute_response(updated_game, new_tables)
 
 
 async def distribute_tables_for_shuffle(session, game_id, user_id, players):
     game = await check_game_by_id(session, game_id)
+    print("GAME CHECKED")
 
     if game.organizer_id != user_id:
         raise ApplicationException("Only organizer can distribute tables", 400)
@@ -248,12 +251,13 @@ async def distribute_tables_for_shuffle(session, game_id, user_id, players):
     players_number = len(players)
 
     tables_size_list = split_tables(players=players_number, max_per_table=8)
-    
+
     new_table_item = NewTablesDTO(
         total_tables=len(tables_size_list)
     )
-    new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
 
+    new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
+    print("TABLES ADDED")
 
     #new_table = await add_table(session, game_id, 1)
     sorting = {"elo": ("elo",)}
