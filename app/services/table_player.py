@@ -141,3 +141,5 @@ async def change_table_player(session, item, table_id, user_id, player_id):
     data.table_participants = total_participants
 
     return data
+
+

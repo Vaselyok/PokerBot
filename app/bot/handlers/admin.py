@@ -21,6 +21,7 @@ from app.models.game import GameStatus
 from app.bot.states.register import RegisterState
 from app.database.game import get_all_games, get_game_players, get_game_by_id
 from app.database.table import get_table_by_id
+from app.database.table_player import get_active_player_table, get_table_players_for_knockout, reward_survivors
 
 router = Router()
 
@@ -324,8 +325,103 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
         game = await get_game_by_id(session, game_id)
         game.telegram_chat.message_with_tables_id = message.message_id
         game.telegram_chat.message_with_tables = "\n".join(text)
+        keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="💀 Выбил кого-то — тыкай сюда",
+                        callback_data=f"knockout_menu:{game_id}",
+                    )
+                ]
+            ]
+        )
 
+        await bot.send_message(
+            chat_id=int(data.chat_id),
+            text="Фиксация выбиваний",
+            reply_markup=keyboard,
+            message_thread_id=data.thread_id or None,
+        )
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("knockout_menu:"))
+async def cb_knockout_menu(callback: CallbackQuery, session: AsyncSession):
+    tg_user = callback.from_user
+
+    if tg_user is None:
+        return
+    _, game_id = callback.data.split(":")
+    game_id = int(game_id)
+    user = await check_player_tg_id(
+        session=session,
+        tg_id=tg_user.id,
+    )
+    table_player = await get_active_player_table(
+        session=session,
+        player_id=user.id,
+        game_id=game_id,
+    )
+
+    if table_player is None:
+        await callback.answer(
+            text="Вы сейчас не сидите за столом",
+            receiver_user_id=tg_user.id,
+            show_alert=True,
+        )
+        return
+    table = table_player.table
+    players = await get_table_players_for_knockout(session, table.id, user.id)
+    keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=p.name,
+                    callback_data=f"knockout:{game_id}:{p.id}",
+                )
+            ]
+            for p in players
+        ]
+    )
+    await callback.message.edit_text(
+        "💀 Кого выбили?",
+        reply_markup=keyboard,
+    )
+
+
+@router.callback_query(F.data.startswith("knockout:"))
+async def cb_knockout(callback: CallbackQuery, session: AsyncSession):
+    _, game_id, player_id = callback.data.split(":")
+
+    game_id = int(game_id)
+    player_id = int(player_id)
+    user = await check_player_tg_id(
+        session=session,
+        tg_id=callback.from_user.id,
+    )
+    table_player = await get_active_player_table(
+        session=session,
+        player_id=user.id,
+        game_id=game_id,
+    )
+
+    table_id = table_player.table_id
+    await reward_survivors(session, table_id)
+    keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="💀 Выбил кого-то — тыкай сюда",
+                    callback_data=f"knockout_menu:{game_id}",
+                )
+            ]
+        ]
+    )
+
+    await callback.message.edit_text(
+        "Фиксация выбиваний",
+        reply_markup=keyboard,
+    )
 
 
 @router.message(Command("finish"))
