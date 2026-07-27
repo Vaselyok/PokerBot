@@ -13,10 +13,12 @@ from app.services.player import check_player_tg_id
 from app.services.game import (
     get_game_list, create_game, distribute_tables, get_game_players_list, leave_game, distribute_tables_for_shuffle
 )
+from app.services.table_player import leave_table
 from app.services.table import get_table_list, delete_table, get_table_list
 from app.services.score import close_table_and_update_elo
 from app.schemas.tgchat import TgchatAddRequest
 from app.schemas.game import GameAddRequest
+from app.schemas.table_player import TablePlayerPatch
 from app.models.game import GameStatus
 from app.bot.states.register import RegisterState
 from app.database.game import get_all_games, get_game_players, get_game_by_id
@@ -406,6 +408,18 @@ async def cb_knockout(callback: CallbackQuery, session: AsyncSession):
     )
 
     table_id = table_player.table_id
+    item = TablePlayerPatch(
+        eliminated=True,
+    )
+
+    data = await leave_table(
+        session=session,
+        item=item,
+        table_id=table_id,
+        player_id=player_id,
+        user_id=user.id,
+        user_name=user.name,
+    )
     await reward_survivors(session, table_id)
     keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
