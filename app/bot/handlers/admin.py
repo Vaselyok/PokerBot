@@ -530,7 +530,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         print("TABLES ITEMS")
         while tables:
             table = tables.pop()
-            await delete_table(session, table.table_id, user.id)
+            await delete_table(session, table.id, user.id)
             print("TABLE DELETED")
         await session.flush()
         print("AFTER FLUSH")
