@@ -97,7 +97,7 @@ async def poll_answer_handler(
             print("SPLITTING DONE")
             text_parts[0] = text_parts[0] + f" - @{poll_answer.user.username}" + "\n"
             await bot.edit_message_text(
-                text=text_parts[0] + text_parts[1],
+                text=text_parts[0] + val_to_split_by + text_parts[1],
                 chat_id=int(game.telegram_chat_id),
                 message_id=message_id_with_tables
             )
