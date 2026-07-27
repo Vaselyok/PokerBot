@@ -7,7 +7,7 @@ from app.config.config import ApplicationException
 from app.bot.utils.formatting import format_table_result
 from app.bot.utils.broadcast import broadcast_table_results
 from app.bot.states.game import CreateGameState
-from datetime import datetime
+from datetime import datetime, timezone
 from app.services.tgchat import create_tgchat, get_tgchat_list
 from app.services.player import check_player_tg_id
 from app.services.game import (
@@ -530,7 +530,8 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         print("TABLES ITEMS")
         while tables:
             table = tables.pop()
-            await delete_table(session, table.id, user.id)
+            #await delete_table(session, table.id, user.id)
+            table.finished_at = datetime.now(timezone.utc)
             print("TABLE DELETED")
         await session.flush()
         print("AFTER FLUSH")
