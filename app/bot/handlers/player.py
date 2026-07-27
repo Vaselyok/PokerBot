@@ -7,6 +7,8 @@ from aiogram.filters import Command
 from app.bot.states.register import RegisterState
 from app.bot.states.chips import ChipsState
 from app.bot.states.nick import NickState
+from app.database.table import get_table_by_id
+from app.database.table_player import reward_survivors
 from app.services.player import create_player, check_player_tg_id, get_player_id, get_my_table, change_player
 from app.services.game import get_game_list, join_game, leave_game
 from app.services.table import get_table_list
@@ -477,7 +479,7 @@ async def cmd_knockout(message: Message, session: AsyncSession):
     table_id = data.table_id
 
     if not players:
-        await message.answer("❌ No players to eliminate")
+        await message.answer("❌ пока разомнись в одиночку")
         return
 
     keyboard = InlineKeyboardMarkup(
@@ -492,7 +494,7 @@ async def cmd_knockout(message: Message, session: AsyncSession):
         ]
     )
 
-    await message.answer("💀 Who did you eliminate?", reply_markup=keyboard)
+    await message.answer("💀 Кто попал под горячую руку?", reply_markup=keyboard)
 
 
 @router.callback_query(F.data.startswith("knockout:"))
@@ -512,6 +514,7 @@ async def cb_knockout(callback: CallbackQuery, session: AsyncSession):
             session=session, item=item, table_id=table_id, user_id=user.id, player_id=player_id, user_name=user.name
         )
         eliminated = data.player
+        table = await get_table_by_id(session, table_id)
 
     except ApplicationException as e:
         await callback.answer(e.name, show_alert=True)
@@ -521,13 +524,15 @@ async def cb_knockout(callback: CallbackQuery, session: AsyncSession):
         await callback.answer(f"⚠️ Server error - {e}", show_alert=True)
         return
 
-    await callback.message.edit_text("✅ Knockout recorded")
+    await callback.message.edit_text("✅ Записали! Нечего было выпендриваться 😎")
 
     try:
         await callback.bot.send_message(
             chat_id=eliminated.telegram_id,
-            text=f"💀 You have been eliminated by {data.eliminator_name}",
+            text=f"💀 Да как он посмел усомниться в силе моей комбинации!\n (Запомним этого хмыря на будущее: {data.eliminator_name}) 😉",
         )
+        await leave_game(session, table.game_id, player_id)
+        await reward_survivors(session, table_id)
     except Exception:
         pass
 

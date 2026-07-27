@@ -52,6 +52,26 @@ async def get_game_players(session, game_id, limit, offset, sort=None, sorting_r
     return result
 
 
+async def get_active_game_players(session, game_id):
+    stmt = (
+        select(GamePlayer)
+        .join(GamePlayer.player)
+        .options(
+            selectinload(GamePlayer.player)
+            .selectinload(Player.table_participations)
+            .selectinload(TablePlayer.table)
+        )
+        .where(
+            GamePlayer.status == Status.JOINED,
+            GamePlayer.game_id == game_id,
+            Player.table_participations.any(TablePlayer.is_active.is_(True)),
+        )
+    )
+
+    result = (await session.scalars(stmt)).unique().all()
+    return result
+
+
 
 async def get_game_by_id(session, id):
     result = await session.execute(
