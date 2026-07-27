@@ -79,12 +79,12 @@ async def poll_answer_handler(
     try:
         await bot.send_message(
             chat_id=poll_answer.user.id,
-            text=text,
+            text=text.result,
         )
         if text != "joined":
             msg = await bot.send_message(
             chat_id=game.telegram_chat.chat_id,
-            text=f"@{poll_answer.user.username}, {text}"
+            text=f"@{poll_answer.user.username}, {text.result}"
         )
 
         await asyncio.sleep(15)
