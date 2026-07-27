@@ -86,9 +86,10 @@ async def close_table_and_update_elo(session, table_id, user_id):
         )
 
         elo_after = max(100, elo_before + elo_change)
-
+###################################
         player.elo = elo_after
-
+        player.elo_change_per_match = 0
+###################################
         await create_elo_history(
             session=session,
             player_id=player.id,

@@ -7,13 +7,14 @@ from app.database.game import (
     is_player_in_game,
     get_game_players_count,
 )
-from app.database.table_player import get_active_player_table, add_table_players
+from app.database.table_player import get_active_player_table, add_table_players, add_table_players_no_reorder
 from app.config.config import ApplicationException
 from app.schemas.common import to_schema, BaseListResponse, BaseShortResponse, ResultResponse
 from app.schemas.game import GameResponse, GamePlayerList, DistributeTablesResponse, TableDistribute, TablePlayerDistribute
 from datetime import datetime, timezone
 from app.models.game import Status, GameStatus
 from app.database.table import add_tables, get_all_tables, add_table
+from app.database.common import ORMListResult
 from app.services.player import check_player_tg_id
 from sqlalchemy.exc import IntegrityError
 import math
@@ -227,6 +228,50 @@ async def distribute_tables(session, game_id, user_id):
     session.expire_all()
     updated_game = await get_game_by_id(session, game_id)
 
+
+    return await build_distribute_response(updated_game, new_tables)
+
+
+async def distribute_tables_for_shuffle(session, game_id, user_id, players):
+    game = await check_game_by_id(session, game_id)
+
+    if game.organizer_id != user_id:
+        raise ApplicationException("Only organizer can distribute tables", 400)
+    
+    # sorting_rules = {"number": ("number",)}
+    # tables = await get_all_tables(
+    #     session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
+    # )
+    # tables = tables.items
+
+    #game.start_time = datetime.now(timezone.utc)
+    game.status = GameStatus.IN_ACTION
+
+    players_number = len(players)
+
+    tables_size_list = split_tables(players=players_number, max_per_table=8)
+    
+    new_table_item = NewTablesDTO(
+        total_tables=len(tables_size_list)
+    )
+    new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
+
+
+    #new_table = await add_table(session, game_id, 1)
+    sorting = {"elo": ("elo",)}
+    num_hours_from_start = (datetime.now(timezone.utc) - datetime.fromisoformat(game.start_time)).total_seconds() / 3600.0
+    # перемешиваем либо вначале либо в конце
+    if num_hours_from_start <= 0.7 or num_hours_from_start > 1.7:
+        players = ORMListResult(total=players_number,items=players)
+        await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
+    # в середине для комфортной игры не перемешиваем
+    elif num_hours_from_start <= 1.7:
+        await add_table_players_no_reorder(session=session, tables=new_tables, size_list=tables_size_list, players=players)
+
+    #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
+    await session.commit()
+    session.expire_all()
+    updated_game = await get_game_by_id(session, game_id)
 
     return await build_distribute_response(updated_game, new_tables)
 

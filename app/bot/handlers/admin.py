@@ -11,14 +11,15 @@ from datetime import datetime
 from app.services.tgchat import create_tgchat, get_tgchat_list
 from app.services.player import check_player_tg_id
 from app.services.game import (
-    get_game_list, create_game, distribute_tables, get_game_players_list, leave_game
+    get_game_list, create_game, distribute_tables, get_game_players_list, leave_game, distribute_tables_for_shuffle
 )
-from app.services.table import get_table_list
+from app.services.table import get_table_list, delete_table, get_table_list
 from app.services.score import close_table_and_update_elo
 from app.schemas.tgchat import TgchatAddRequest
 from app.schemas.game import GameAddRequest
-
+from app.models.game import GameStatus
 from app.bot.states.register import RegisterState
+from app.database.game import get_all_games, get_game_players
 
 router = Router()
 
@@ -505,6 +506,71 @@ async def cmd_game_list(message: Message, session: AsyncSession):
         "🎮 Choose game:",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard)
     )
+
+########################################
+@router.message(Command("shuffle"))
+async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
+    tg_user = message.from_user
+
+    if tg_user is None:
+        return
+    
+    try:
+        user = await check_player_tg_id(
+            session=session,
+            tg_id=tg_user.id,
+        )
+        game = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id).items[0]
+        tables = await get_table_list(session, 100, 0, game.id, organizer_id=user.id).items
+        while tables:
+            table = tables.pop()
+            await delete_table(session, table.table_id, user.id)
+        await session.flush()
+        await session.commit()
+        players = get_game_players(session, game.id, 1000, 0, sort=None, sorting_rules=None).items
+        players = sorted(players, key=lambda x: x.elo_change_per_match)
+        data = distribute_tables_for_shuffle(session, game.id, user.id, players)
+
+    except ApplicationException as e:
+        await message.answer(e.name)
+        return
+    
+    except Exception as e:
+        await message.answer(f"⚠️ Server error - {e}")
+        return
+
+    text = ["🔀 Столы перемешали!\n", ""]
+
+    for table in data.tables:
+        text.append(f"Table {table.number}:")
+        for p in table.players:
+            text.append(f" - {p.name}")
+        text.append("")
+
+    result = "\n".join(text)
+
+    # Личные сообщения игрокам
+    for table in data.tables:
+        for p in table.players:
+            try:
+                await bot.send_message(
+                    chat_id=p.telegram_id,
+                    text=f"🪑 You are seated at table {table.number}",
+                )
+            except Exception:
+                pass
+
+    # Сообщение в чат
+    if data.chat_id is not None:
+        await bot.send_message(
+            chat_id=int(data.chat_id),
+            text=result,
+            message_thread_id=data.thread_id or None,
+        )
+
+    await message.answer("✅ Shuffle completed.")
+    
+#######################################
 
 
 @router.callback_query(F.data.startswith("game_list:"))
