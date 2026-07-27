@@ -10,6 +10,7 @@ class TableCountResponse(BaseModel):
     id: int
     number: int
     total_participants: int | None = None
+    finished_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
