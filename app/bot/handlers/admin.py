@@ -585,7 +585,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         # )
         try:
             message_id_with_tables = game.telegram_chat.message_with_tables_id
-            
+            print(f"\n ⚠️⚠️⚠️ \n chat_id={int(data.chat_id)}\n message_id={message_id_with_tables}")
             await bot.edit_message_text(
                 text=result,
                 chat_id=int(data.chat_id),
