@@ -122,24 +122,33 @@ async def join_game(session, game_id, player_id):
             return ResultResponse(result="it breaks here")
     text = ''
     try:
+        print("BEFORE ADDING TO GAME")
         await add_to_game(session=session, game_id=game_id, player_id=player_id)
+        print("ADDED TO GAME")
         if game.status == GameStatus.IN_ACTION:
+            print("INSIDE IF")
             sorting_rules = {"number": ("number",)}
             tables = await get_active_tables(
                 session=session, limit=100, offset=0, game_id=game_id, sorting_rules=sorting_rules
             )
+            print("GoT ACTIVE TABLES")
             tables = tables.items
             table_ = None
             min_change = 100
             for table in tables:
                 curr_min = 0
+                print("BEFORE TAKE TABLE PLAYERS")
                 table_players = await get_all_table_players_by_id(session, table.id)
+                print("AFTER TAKE TABLE PLAYERS")
                 for player in table_players:
                     curr_min += player.player.elo_change_per_match
+                print("AFTER CURR MIN")
                 if curr_min < min_change and len(table_players) < 8:
                     table_ = table
                     min_change = curr_min
+            print("BEFORE ADD TABLE")
             table_player = await add_table_player(session, table_.id, player_id)
+            print("AFTER ADD TABLE")
             text = f"🪑Твой стол #{table_.number}"
 
     except IntegrityError as e:
