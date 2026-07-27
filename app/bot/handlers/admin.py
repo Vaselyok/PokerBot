@@ -523,16 +523,22 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
             session=session,
             tg_id=tg_user.id,
         )
-        game = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id).items[0]
-        tables = await get_table_list(session, 100, 0, game.id, organizer_id=user.id).items
+        game = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id)
+
+        tables = await get_table_list(session, 100, 0, game.items[0].id, organizer_id=user.id)
+        tables = tables.items
+        print("TABLES ITEMS")
         while tables:
             table = tables.pop()
             await delete_table(session, table.table_id, user.id)
+            print("TABLE DELETED")
         await session.flush()
-        await session.commit()
-        players = get_game_players(session, game.id, 1000, 0, sort=None, sorting_rules=None).items
-        players = sorted(players, key=lambda x: x.elo_change_per_match)
-        data = distribute_tables_for_shuffle(session, game.id, user.id, players)
+        print("AFTER FLUSH")
+        players = await get_game_players(session, game.id, 1000, 0, sort=None, sorting_rules=None)
+        print("PLAYERS GOT")
+        players = sorted(players.items, key=lambda x: x.elo_change_per_match)
+        data = await distribute_tables_for_shuffle(session, game.id, user.id, players)
+        print("SHUFFLE DISTRIBUTED")
 
     except ApplicationException as e:
         await message.answer(e.name)
