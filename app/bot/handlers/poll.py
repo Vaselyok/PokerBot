@@ -105,7 +105,7 @@ async def poll_answer_handler(
             else:
                 msg = await bot.send_message(
                             chat_id=game.telegram_chat.chat_id,
-                            text="@{poll_answer.user.username}, ✅ Ты в игре, НО!\n" + text.result,
+                            text=f"@{poll_answer.user.username}, ✅ Ты в игре, НО!\n" + text.result,
                         )
                 await asyncio.sleep(15)
                 await bot.delete_message(msg.chat.id, msg.message_id)
