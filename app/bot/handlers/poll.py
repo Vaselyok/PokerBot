@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.config import ApplicationException
 from app.models.game import Game
-
+import asyncio
 from app.services.player import (
     check_player_tg_id,
     create_player,
@@ -81,5 +81,13 @@ async def poll_answer_handler(
             chat_id=poll_answer.user.id,
             text=text,
         )
+        if text != "joined":
+            msg = await bot.send_message(
+            chat_id=game.telegram_chat.chat_id,
+            text=f"@{poll_answer.user.username}, {text}"
+        )
+
+        await asyncio.sleep(15)
+        await bot.delete_message(msg.chat.id, msg.message_id)
     except Exception:
         pass

@@ -7,13 +7,18 @@ from app.database.game import (
     is_player_in_game,
     get_game_players_count,
 )
-from app.database.table_player import get_active_player_table, add_table_players, add_table_players_no_reorder
+from app.database.table_player import (
+    get_active_player_table,
+    add_table_players,
+    add_table_players_no_reorder,
+    add_table_player,
+    get_all_table_players_by_id)
 from app.config.config import ApplicationException
 from app.schemas.common import to_schema, BaseListResponse, BaseShortResponse, ResultResponse
 from app.schemas.game import GameResponse, GamePlayerList, DistributeTablesResponse, TableDistribute, TablePlayerDistribute
 from datetime import datetime, timezone
 from app.models.game import Status, GameStatus
-from app.database.table import add_tables, get_all_tables, add_table
+from app.database.table import add_tables, get_all_tables, add_table, get_active_tables
 from app.database.common import ORMListResult
 from app.services.player import check_player_tg_id
 from sqlalchemy.exc import IntegrityError
@@ -115,23 +120,32 @@ async def join_game(session, game_id, player_id):
         
         else:
             return ResultResponse(result="it breaks here")
-    
+    text = ''
     try:
         await add_to_game(session=session, game_id=game_id, player_id=player_id)
-        # тут надо написать если game.status == IN_ACTION то добавить его за стол
-        # sorting_rules = {"number": ("number",)}
-        # tables = await get_all_tables(
-        #     session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
-        # )
-        # tables = tables.items
-        # for table in tables:
-        #       table_players = await get_all_table_players_by_id(session, table.id)
-        # table_player = await add_table_player(session, table_id, player_id)
+        if game.status == GameStatus.IN_ACTION:
+            sorting_rules = {"number": ("number",)}
+            tables = await get_active_tables(
+                session=session, limit=100, offset=0, game_id=game_id, sorting_rules=sorting_rules
+            )
+            tables = tables.items
+            table_ = None
+            min_change = 100
+            for table in tables:
+                curr_min = 0
+                table_players = await get_all_table_players_by_id(session, table.id)
+                for player in table_players:
+                    curr_min += player.player.elo_change_per_match
+                if curr_min < min_change and len(table_players) < 8:
+                    table_ = table
+                    min_change = curr_min
+            table_player = await add_table_player(session, table_.id, player_id)
+            text = f"🪑Твой стол #{table_.number}"
 
     except IntegrityError as e:
         raise ApplicationException(f"SQL Error: {e}", 400)
 
-    return ResultResponse(result="joined")
+    return ResultResponse(result=text if text else "joined")
 
 
 async def leave_game(session, game_id, player_id):
