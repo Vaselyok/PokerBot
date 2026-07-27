@@ -17,3 +17,5 @@ class TelegramChat(Base):
 
     created_at = Column(DateTime, default=now, nullable=False)
     updated_at = Column(DateTime, default=now, onupdate=now, nullable=False)
+    message_with_tables_id = Column(BigInteger, nullable=True)
+    message_with_tables = Column(String, nullable=True)

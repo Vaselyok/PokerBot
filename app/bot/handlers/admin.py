@@ -19,7 +19,7 @@ from app.schemas.tgchat import TgchatAddRequest
 from app.schemas.game import GameAddRequest
 from app.models.game import GameStatus
 from app.bot.states.register import RegisterState
-from app.database.game import get_all_games, get_game_players
+from app.database.game import get_all_games, get_game_players, get_game_by_id
 from app.database.table import get_table_by_id
 
 router = Router()
@@ -316,11 +316,14 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
                 pass
 
     if data.chat_id is not None:
-        await bot.send_message(
+        message = await bot.send_message(
             chat_id=int(data.chat_id),
             text=("\n".join(text)),
             message_thread_id=data.thread_id or None
         )
+        game = get_game_by_id(session, game_id)
+        game.telegram_chat.message_with_tables_id = message.message_id
+        game.telegram_chat.message_with_tables = "\n".join(text)
 
     await callback.answer()
 
@@ -575,11 +578,22 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
 
     # Сообщение в чат
     if data.chat_id is not None:
-        await bot.send_message(
-            chat_id=int(data.chat_id),
-            text=result,
-            message_thread_id=data.thread_id or None,
-        )
+        # await bot.send_message(
+        #     chat_id=int(data.chat_id),
+        #     text=result,
+        #     message_thread_id=data.thread_id or None,
+        # )
+        try:
+            message_id_with_tables = game.telegram_chat.message_with_tables_id
+            
+            await bot.edit_message_text(
+                text=result,
+                chat_id=int(data.chat_id),
+                message_id=message_id_with_tables
+            )
+        except Exception as e:
+            print(f"⚠️ {e.name}")
+            pass
 
     await message.answer("✅ Shuffle completed.")
     
