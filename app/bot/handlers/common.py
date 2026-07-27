@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.config import ApplicationException
 from app.bot.utils.formatting import leaderboard_text
-from .player import cmd_join
+from .player import cmd_join, cmd_knockout
 from .admin import cmd_register
 from app.services.player import check_player_tg_id, get_leaderboard
 
@@ -21,9 +21,25 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot, session: Asyn
 
     if len(args) > 1 and args[1] == "join":
         try:
-            player = await check_player_tg_id(session=session, tg_id=user.id)
+            #player = await check_player_tg_id(session=session, tg_id=user.id)
             
             return await cmd_join(message, session)
+
+        except ApplicationException as e:
+            if e.code == 404:
+                return await cmd_register(message, state, session)
+               
+            await message.answer(f"⚠️ {e.name}")
+            return
+
+        except Exception as e:
+            await message.answer(f"⚠️ Server error - {e}")
+            return
+    elif len(args) > 1 and args[1] == "knockout":
+        try:
+            #player = await check_player_tg_id(session=session, tg_id=user.id)
+            
+            return await cmd_knockout(message, session)
 
         except ApplicationException as e:
             if e.code == 404:
