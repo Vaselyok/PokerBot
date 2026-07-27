@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from app.models.game import Status, GameStatus
 from app.database.table import add_tables, get_all_tables, add_table, get_active_tables
 from app.database.common import ORMListResult
-from app.services.player import check_player_tg_id
+from app.services.player import check_player_tg_id, get_player_by_id
 from sqlalchemy.exc import IntegrityError
 import math
 from dataclasses import dataclass
@@ -101,7 +101,8 @@ async def change_game(session, id, item, user_id):
 
 async def join_game(session, game_id, player_id):
     game = await check_game_by_id(session, game_id)
-
+    player = await get_player_by_id(session, player_id)
+    player.elo_change_per_match = 0
     in_game = await is_player_in_game(session, player_id, game_id)
 
     if in_game:
