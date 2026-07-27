@@ -164,8 +164,10 @@ async def cb_join_table(callback: CallbackQuery, session: AsyncSession):
     try:
         user = await check_player_tg_id(session=session, tg_id=tg_user.id)
         text = await join_game(session=session, game_id=game_id, player_id=user.id)
-
-        status_text = f"✅ Ты в игре!\n 🪑 Твой стол #{text.result.split('#')[-1]}\n (в чате со столами тебя пока не видно, но появишься там при шаффле)"
+        if '#' in text.result:
+            status_text = f"✅ Ты в игре!\n 🪑 Твой стол #{text.result.split('#')[-1]}\n (в чате со столами тебя пока не видно, но появишься там при шаффле)"
+        else:
+            status_text = "✅ Ты в игре, НО!\n" + text.result
 
         tables = await get_table_list(
             session=session, limit=50, offset=0, game_id=game_id, organizer_id=None
@@ -247,7 +249,7 @@ async def cb_leave_game(callback: CallbackQuery, session: AsyncSession):
 
     except ApplicationException as e:
         await callback.answer(e.name, show_alert=True)
-        return 
+        return
 
     except Exception as e:
         await callback.answer(f"⚠️ Server error - {e}", show_alert=True)

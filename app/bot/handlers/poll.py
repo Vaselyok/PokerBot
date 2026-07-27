@@ -91,16 +91,24 @@ async def poll_answer_handler(
             print(f"\n OOOOOOOO  {str(message_id_with_tables)}  OOOOOOOOOOOO\n")
             print("AFTER MESSAGE_ID")
             # берем новый номер человека
-            val_to_split_by = f"Table {text.result.split('#')[-1]}:\n"
-            print("AFTER FIRST SPLIT")
-            text_parts = str(game.telegram_chat.message_with_tables).split(val_to_split_by)
-            print("SPLITTING DONE")
-            text_parts[0] = text_parts[0] + val_to_split_by + f" - @{poll_answer.user.username}" + "\n"
-            await bot.edit_message_text(
-                text=text_parts[0] + text_parts[1],
-                chat_id=int(game.telegram_chat_id),
-                message_id=message_id_with_tables
-            )
+            if '#' in text.result:
+                val_to_split_by = f"Table {text.result.split('#')[-1]}:\n"
+                print("AFTER FIRST SPLIT")
+                text_parts = str(game.telegram_chat.message_with_tables).split(val_to_split_by)
+                print("SPLITTING DONE")
+                text_parts[0] = text_parts[0] + val_to_split_by + f" - @{poll_answer.user.username}" + "\n"
+                await bot.edit_message_text(
+                    text=text_parts[0] + text_parts[1],
+                    chat_id=int(game.telegram_chat_id),
+                    message_id=message_id_with_tables
+                )
+            else:
+                msg = await bot.send_message(
+                            chat_id=game.telegram_chat.chat_id,
+                            text="@{poll_answer.user.username}, ✅ Ты в игре, НО!\n" + text.result,
+                        )
+                await asyncio.sleep(15)
+                await bot.delete_message(msg.chat.id, msg.message_id)
 
         #await asyncio.sleep(15)
         #await bot.delete_message(msg.chat.id, msg.message_id)

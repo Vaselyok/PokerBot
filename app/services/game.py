@@ -147,9 +147,12 @@ async def join_game(session, game_id, player_id):
                     table_ = table
                     min_change = curr_min
             print("BEFORE ADD TABLE")
-            table_player = await add_table_player(session, table_.id, player_id)
-            print("AFTER ADD TABLE")
-            text = f"🪑Твой стол #{table_.number}"
+            if table_:
+                table_player = await add_table_player(session, table_.id, player_id)
+                text = f"🪑Твой стол #{table_.number}"
+            else:
+                text = f"Попроси организатора перемешать столы 🪑, время пришло"
+            
 
     except IntegrityError as e:
         raise ApplicationException(f"SQL Error: {e}", 400)
