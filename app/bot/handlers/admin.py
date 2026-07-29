@@ -249,6 +249,7 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
                                  item=item,
                                  user_id=user.id,
                                  poll_register_id=poll_register.poll.id,
+                                 poll_exit_id=None,
                                  registered=0)
 
     except ApplicationException as e:
