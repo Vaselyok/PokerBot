@@ -224,7 +224,8 @@ async def close_table_and_update_elo(session, table_id, user_id):
 
 async def rating_update_ballroom_system(session, game_id):
     print("\n     SESSION ", id(session), "\n")
-    tables = await get_active_tables(session, 1000, 0, game_id, None)
+    sorting_rules = {"number": ("number",)}
+    tables = await get_active_tables(session, 1000, 0, game_id, sorting_rules)
     print(f"\nACTIVE TABLES {len(tables.items)}\n")
     game_players = await get_table_players_by_id(session, tables.items[0].id)
     #game_players = await get_active_game_players(session, game_id)
