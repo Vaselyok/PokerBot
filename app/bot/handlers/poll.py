@@ -47,6 +47,7 @@ async def poll_answer_handler(
     poll_register_id = True
 
     if game is None:
+        print(f"\n⚠️⚠️⚠️ POLL FOR EXIT\n")
         game = await session.scalar(
                 select(Game).where(
                     Game.poll_exit_id == poll_id
@@ -127,14 +128,18 @@ async def poll_answer_handler(
             print(f"⚠️ {e.name}")
             pass
     else: # логика если вылететел
+        print(f"⚠️⚠️⚠️ POLL EXIT REALIZATION")
         game_player = await is_player_in_game(session, player.id, game.id)
+        print(f"⚠️⚠️⚠️ CHECK PLAYER IN GAME")
         if game_player:
             if game_player.player.is_active:
+                print(f"⚠️⚠️⚠️ DOING LEAVE TABLE")
                 table = await get_my_table(session=session, player_id=game_player.player.id)
                 table_id = table.table_id
                 item = TablePlayerPatch(eliminated=True)
-                print("\n BEFORE LEAVE_TABLE IN POLL ANSWER \n")
+                print("\n ⚠️⚠️⚠️ BEFORE LEAVE_TABLE IN POLL ANSWER \n")
                 await leave_table(session, item, table_id, player.id, player.id, game_player.player.name)
+                print("⚠️⚠️⚠️ LEFT TABLE")
                 await rating_update_ballroom_system(session, game.id)
             else:
                 msg = await bot.send_message(
