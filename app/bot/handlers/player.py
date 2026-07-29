@@ -7,12 +7,14 @@ from aiogram.filters import Command
 from app.bot.states.register import RegisterState
 from app.bot.states.chips import ChipsState
 from app.bot.states.nick import NickState
+from app.database.game import get_active_game
 from app.database.table import get_table_by_id
 from app.database.table_player import reward_survivors
 from app.services.player import create_player, check_player_tg_id, get_player_id, get_my_table, change_player
 from app.services.game import get_game_list, join_game, leave_game
 from app.services.table import get_table_list
 from app.services.table_player import add_player_at_table, change_table_player, leave_table
+from app.services.score import rating_update_ballroom_system
 from app.schemas.player import PlayerAddRequest, PlayerPatchRequest
 from app.schemas.table_player import TablePlayerPatch
 
@@ -514,7 +516,9 @@ async def cb_knockout(callback: CallbackQuery, session: AsyncSession):
             session=session, item=item, table_id=table_id, user_id=user.id, player_id=player_id, user_name=user.name
         )
         eliminated = data.player
-        table = await get_table_by_id(session, table_id)
+        #table = await get_table_by_id(session, table_id)
+        game = await get_active_game(session)
+        await rating_update_ballroom_system(session, game.id)
 
     except ApplicationException as e:
         await callback.answer(e.name, show_alert=True)
@@ -531,8 +535,8 @@ async def cb_knockout(callback: CallbackQuery, session: AsyncSession):
             chat_id=eliminated.telegram_id,
             text=f"💀 Да как он посмел усомниться в силе моей комбинации!\n (Запомним этого хмыря на будущее: {data.eliminator_name}) 😉",
         )
-        await leave_game(session, table.game_id, player_id)
-        await reward_survivors(session, table_id)
+        #await leave_game(session, table.game_id, player_id)
+        #await reward_survivors(session, table_id)
     except Exception:
         pass
 

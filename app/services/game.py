@@ -20,9 +20,10 @@ from datetime import datetime, timezone
 from app.models.game import Status, GameStatus
 from app.database.table import add_tables, get_all_tables, add_table, get_active_tables
 from app.database.common import ORMListResult
-from app.services.player import check_player_tg_id, get_player_by_id
+from app.services.player import check_player_tg_id, get_player_by_id, get_my_table
 from sqlalchemy.exc import IntegrityError
 import math
+import random
 from dataclasses import dataclass
 
 @dataclass
@@ -235,13 +236,14 @@ async def distribute_tables(session, game_id, user_id):
 
     tables_size_list = split_tables(players=players_number, max_per_table=2)
     
-    new_table_item = NewTablesDTO(
-        total_tables=len(tables_size_list)
-    )
-    new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
+    # new_table_item = NewTablesDTO(
+    #     total_tables=len(tables_size_list)
+    # )
+    #new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
+    new_table = await add_table(session, game_id, 1)
     print("TABLES ADDED")
 
-    #new_table = await add_table(session, game_id, 1)
+
     sorting = {"elo": ("elo",)}
     players = await get_game_players(
         session=session, game_id=game_id, limit=1000, offset=0, sort="-elo", sorting_rules=sorting
@@ -251,61 +253,36 @@ async def distribute_tables(session, game_id, user_id):
         player.player.elo_change_per_match = 0
     session.flush()
 
-    await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
+    await add_table_players(session=session, table=new_table, size_list=tables_size_list, players=players)
     print("TABLE PLAYERS ADDED")
 
-    #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
-
+    fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
+    print("TABLE PLAYERS ADDED")
     await session.flush()
     updated_game = await get_game_by_id(session, game_id)
     print("AFTER FLUSH")
 
-    return await build_distribute_response(updated_game, new_tables)
+    #return await build_distribute_response(updated_game, new_tables)
+    return await build_distribute_response(updated_game, fictitious_distribution)
 
 
-async def distribute_tables_for_shuffle(session, game_id, user_id, players):
+async def distribute_tables_for_shuffle(session, game_id, user_id, active_players):
     game = await check_game_by_id(session, game_id)
     print("GAME CHECKED")
 
     if game.organizer_id != user_id:
         raise ApplicationException("Only organizer can distribute tables", 400)
-    
-    # sorting_rules = {"number": ("number",)}
-    # tables = await get_all_tables(
-    #     session=session, limit=20, offset=0, game_id=game_id, sorting_rules=sorting_rules
-    # )
-    # tables = tables.items
 
-    #game.start_time = datetime.now(timezone.utc)
-    game.status = GameStatus.IN_ACTION
-
-    players_number = len(players)
+    table = await get_my_table(session, user_id)
+    players_number = len(active_players.items)
 
     tables_size_list = split_tables(players=players_number, max_per_table=2)
 
-    new_table_item = NewTablesDTO(
-        total_tables=len(tables_size_list)
-    )
-
-    new_tables = await add_tables(session=session, game_id=game_id, item=new_table_item)
-    print("TABLES ADDED")
-
-    #new_table = await add_table(session, game_id, 1)
-    sorting = {"elo": ("elo",)}
-    num_hours_from_start = (datetime.now(timezone.utc) - game.start_time).total_seconds() / 3600.0
-    # перемешиваем либо вначале либо в конце
-    if num_hours_from_start <= 0.7 or num_hours_from_start > 1.7:
-        players = ORMListResult(total=players_number,items=players)
-        await add_table_players(session=session, tables=new_tables, size_list=tables_size_list, players=players)
-    # в середине для комфортной игры не перемешиваем
-    elif num_hours_from_start <= 1.7:
-        await add_table_players_no_reorder(session=session, tables=new_tables, size_list=tables_size_list, players=players)
-
-    #fictitious_distribution = await fictitious_table_players(players, tables_size_list, new_table.id)
+    fictitious_distribution = await fictitious_table_players(active_players, tables_size_list, table.table_id)
     await session.flush()
     updated_game = await get_game_by_id(session, game_id)
 
-    return await build_distribute_response(updated_game, new_tables)
+    return await build_distribute_response(updated_game, fictitious_distribution)
 
 
 def split_tables(players: int, max_per_table: int):
@@ -319,11 +296,12 @@ def split_tables(players: int, max_per_table: int):
     return result
 
 
-'''
+
 async def fictitious_table_players(players, size_list, real_table_id):
     start = 0
     tables_distribution = []
     flat_players = players.items
+    random.shuffle(flat_players)
 
     for idx, size in enumerate(size_list, start=1):
         current_table_players = [] 
@@ -346,8 +324,8 @@ async def fictitious_table_players(players, size_list, real_table_id):
         ))
             
     return tables_distribution
-'''
-'''
+
+
 async def build_distribute_response(game, tables_distribution):
     return DistributeTablesResponse(
         game_id=game.id,
@@ -378,3 +356,4 @@ async def build_distribute_response(game, tables):
             for table in tables if table.finished_at is None
         ],
     )
+'''
