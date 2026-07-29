@@ -494,35 +494,35 @@ async def cmd_finish(message: Message, session: AsyncSession):
             return
 
         game = games[0]
-        g = await get_game_by_id(session, game.id)
-        g.staus = GameStatus.FINISHED
-        g.is_archived = True
+        # g = await get_game_by_id(session, game.id)
+        # g.staus = GameStatus.FINISHED
+        # g.is_archived = True
         
-        await session.flush()
-        return
-        # tables= await get_table_list(
-        #     session=session, limit=50, offset=0, game_id=game.id, organizer_id=None
-        # )
+        # await session.flush()
+        # return
+        tables= await get_table_list(
+            session=session, limit=50, offset=0, game_id=game.id, organizer_id=None
+        )
 
-        # items = tables.items or []
+        items = tables.items or []
 
-        # if not items:
-        #     await message.answer("❌ No tables available")
-        #     return
+        if not items:
+            await message.answer("❌ No tables available")
+            return
 
-        # keyboard = InlineKeyboardMarkup(
-        #     inline_keyboard=[
-        #         [
-        #             InlineKeyboardButton(
-        #                 text=f"Table {t.number} ({t.total_participants or'?'} players)",
-        #                 callback_data=f"close_table:{t.id}",
-        #             )
-        #         ]
-        #         for t in items
-        #     ]
-        # )
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"Table {t.number} ({t.total_participants or'?'} players)",
+                        callback_data=f"close_table:{t.id}",
+                    )
+                ]
+                for t in items
+            ]
+        )
 
-        # await message.answer("🪑 Choose table to finish:", reply_markup=keyboard)
+        await message.answer("🪑 Choose table to finish:", reply_markup=keyboard)
 
     except ApplicationException as e:
         await message.answer(f"⚠️ {e.name}")
