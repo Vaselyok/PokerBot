@@ -22,8 +22,8 @@ from app.schemas.table_player import TablePlayerPatch
 from app.models.game import GameStatus
 from app.bot.states.register import RegisterState
 from app.database.game import get_all_games, get_active_game_players, get_game_by_id
-from app.database.table import get_table_by_id
-from app.database.table_player import get_active_player_table, get_table_players_for_knockout, reward_survivors
+from app.database.table import get_table_by_id, get_active_tables
+from app.database.table_player import get_active_player_table, get_table_players_for_knockout, reward_survivors, get_table_players_by_id
 
 router = Router()
 
@@ -695,7 +695,11 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         #     print("TABLE FINISHED")
         # await session.flush()
         # print("AFTER FLUSH")
-        players = await get_active_game_players(session, game.id)
+        #players = await get_active_game_players(session, game.id)
+        sorting_rules = {"number": ("number",)}
+        tables = await get_active_tables(session, 1000, 0, game.id, sorting_rules)
+        print(f"\nACTIVE TABLES {len(tables.items)}\n")
+        players = await get_table_players_by_id(session, tables.items[0].id)
         print(f"PLAYERS GOT {len(players.items) or "SHIT"}")
         data = await distribute_tables_for_shuffle(session, game.id, user.id, players)
         print("SHUFFLE DISTRIBUTED")

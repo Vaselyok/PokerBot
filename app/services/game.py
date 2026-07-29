@@ -274,7 +274,7 @@ async def distribute_tables_for_shuffle(session, game_id, user_id, active_player
         raise ApplicationException("Only organizer can distribute tables", 400)
 
     table = await get_my_table(session, user_id)
-    players_number = len(active_players.items)
+    players_number = len(active_players)
 
     tables_size_list = split_tables(players=players_number, max_per_table=2)
 
@@ -300,7 +300,10 @@ def split_tables(players: int, max_per_table: int):
 async def fictitious_table_players(players, size_list, real_table_id):
     start = 0
     tables_distribution = []
-    flat_players = players.items
+    if isinstance(players, list):
+        flat_players = players
+    else:
+        flat_players = players.items
     random.shuffle(flat_players)
 
     for idx, size in enumerate(size_list, start=1):
