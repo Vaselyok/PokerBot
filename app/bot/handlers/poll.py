@@ -14,7 +14,7 @@ from app.services.score import rating_update_ballroom_system
 from app.services.player import get_my_table
 from app.services.table_player import leave_table
 from app.database.game import is_player_in_game
-from app.database.table_player import get_active_table_map, get_table_player_by_id
+from app.database.table_player import get_active_table_map, get_table_player_by_id, table_participants_count
 from app.schemas.player import PlayerAddRequest
 from app.schemas.table_player import TablePlayerPatch
 import datetime
@@ -140,6 +140,8 @@ async def poll_answer_handler(
                 print(f"⚠️⚠️⚠️ DOING LEAVE TABLE")
                 item = TablePlayerPatch(eliminated=True)
                 print("\n ⚠️⚠️⚠️ BEFORE LEAVE_TABLE IN POLL ANSWER \n")
+                current_participants = await table_participants_count(session, table_id)
+                tp.player.elo_change_per_match = 100 * ((game.registered - current_participants)/(game.registered - 1)**(1.5))*(game.registered/15)**(0.2)
                 await leave_table(session, item, table_id, player.id, player.id, game_player.player.name)
                 print("⚠️⚠️⚠️ LEFT TABLE")
                 await rating_update_ballroom_system(session, game.id)

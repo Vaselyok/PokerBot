@@ -9,7 +9,7 @@ from app.bot.states.chips import ChipsState
 from app.bot.states.nick import NickState
 from app.database.game import get_active_game
 from app.database.table import get_table_by_id
-from app.database.table_player import reward_survivors
+from app.database.table_player import reward_survivors, get_table_player_by_id, table_participants_count
 from app.services.player import create_player, check_player_tg_id, get_player_id, get_my_table, change_player
 from app.services.game import get_game_list, join_game, leave_game
 from app.services.table import get_table_list
@@ -518,6 +518,9 @@ async def cb_knockout(callback: CallbackQuery, session: AsyncSession):
         eliminated = data.player
         #table = await get_table_by_id(session, table_id)
         game = await get_active_game(session)
+        tp = await get_table_player_by_id(session, table_id, player_id)
+        current_participants = await table_participants_count(session, table_id)
+        tp.player.elo_change_per_match = 100 * ((game.registered - current_participants - 1)/(game.registered - 1)**(1.5))*(game.registered/15)**(0.2)
         await rating_update_ballroom_system(session, game.id)
 
     except ApplicationException as e:

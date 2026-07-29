@@ -329,7 +329,7 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
             try:
                 await callback.bot.send_message(
                     chat_id=p.telegram_id,
-                    text=f"🪑 You are seated at table {table.number}",
+                    text=f"🪑 Двигай за стол {table.number}",
                 )
             except Exception:
                 pass
@@ -625,7 +625,7 @@ async def cb_close_table(callback: CallbackQuery, bot: Bot, session: AsyncSessio
             text=text,
             message_thread_id=result.thread_id or None
         )
-
+    
     await broadcast_table_results(callback.bot, result)
 
     await callback.answer()
@@ -729,7 +729,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
             try:
                 await bot.send_message(
                     chat_id=p.telegram_id,
-                    text=f"🪑 You are seated at table {table.number}",
+                    text=f"🪑 Двигай за стол {table.number}",
                 )
             except Exception:
                 pass
