@@ -492,7 +492,7 @@ async def cmd_finish(message: Message, session: AsyncSession):
 
             await message.answer("🎮 Choose game:", reply_markup=keyboard)
             return
-
+        print("\n BEFORE GAME SUBSCRIPTION\n")
         game = games[0]
         # g = await get_game_by_id(session, game.id)
         # g.staus = GameStatus.FINISHED
@@ -500,7 +500,8 @@ async def cmd_finish(message: Message, session: AsyncSession):
         
         # await session.flush()
         # return
-        tables= await get_table_list(
+        print("\n BEFORE GET TABLE LIST \n")
+        tables = await get_table_list(
             session=session, limit=50, offset=0, game_id=game.id, organizer_id=None
         )
 
@@ -508,7 +509,7 @@ async def cmd_finish(message: Message, session: AsyncSession):
         if not items:
             await message.answer("❌ No tables available")
             return
-
+        print("\n BEFORE INLINE KEYBOARD \n")
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
