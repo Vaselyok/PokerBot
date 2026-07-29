@@ -682,7 +682,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         )
         game = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id)
         game = game.items[0]
-
+        print(f"# GAMES {len(game.items)}")
         # логика ниже для случая многих столов
         # tables = await get_table_list(session, 100, 0, game.id, organizer_id=user.id)
         # tables = tables.items
@@ -699,6 +699,7 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         sorting_rules = {"number": ("number",)}
         tables = await get_active_tables(session, 1000, 0, game.id, sorting_rules)
         #print(f"\nACTIVE TABLES {len(tables.items)}\n")
+        print(f"ACTIVE TABLES WHEN SHUFFLE {len(tables.items)}")
         players = await get_table_players_by_id(session, tables.items[0].id)
         print(f"\nTABLE ID for ALL{tables.items[0].id}\n")
         data = await distribute_tables_for_shuffle(session, game.id, user.id, players, tables.items[0].id)
