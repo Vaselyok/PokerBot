@@ -96,7 +96,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
             bounty_bonus=0.0,
             chips_bonus=0.0,
             position=tp.position if tp.position else 1,
-            chips=100000 if tp.position and tp.position > 1 else 100000,
+            chips=0 if tp.position and tp.position > 1 else 100000,
             players_total=total_players,
         )
 
@@ -113,7 +113,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
                 bounty_bonus=0.0,
                 chips_bonus=0.0,
                 position=tp.position if tp.position else 1,
-                chips=100000 if tp.position and tp.position > 1 else 100000,
+                chips=0 if tp.position and tp.position > 1 else 100000,
                 finished_at=tp.finished_at
             )
         )
