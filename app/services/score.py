@@ -5,6 +5,7 @@ from app.database.score import (
 )
 from app.config.config import ApplicationException
 from app.schemas.common import to_schema
+from app.database.game import get_active_game_players, get_game_by_id
 from app.database.table import get_table_by_id, open_tables_count
 from app.database.table_player import get_all_table_players_by_id
 from app.services.game import check_game_by_id
@@ -51,7 +52,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
         raise ApplicationException("Only organizer can close table", 400)
 
     table_players = await get_all_table_players_by_id(session, table_id)
-    #assign_positions(table_players)
+    # await assign_positions(table_players)
 
     if not table_players:
         raise ApplicationException("No players at table", 400)
@@ -80,10 +81,10 @@ async def close_table_and_update_elo(session, table_id, user_id):
 
         elo_change = player.elo_change_per_match
         elo_after = elo_before + elo_change
-###################################
+
         player.elo = elo_after
         player.elo_change_per_match = 0
-###################################
+
         await create_elo_history(
             session=session,
             player_id=player.id,
@@ -95,7 +96,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
             bounty_bonus=0.0,
             chips_bonus=0.0,
             position=tp.position,
-            chips=tp.chips,
+            chips= 100000 if tp.position == 1 else 0,
             players_total=total_players,
         )
 
@@ -111,7 +112,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
                 bounty_bonus=0.0,
                 chips_bonus=0.0,
                 position=tp.position,
-                chips=tp.chips,
+                chips=100000 if tp.position == 1 else 0,
                 finished_at=tp.finished_at
             )
         )
@@ -221,3 +222,17 @@ async def close_table_and_update_elo(session, table_id, user_id):
 #     for tp in active:
 #         tp.position = current_position
 #         current_position += 1
+
+async def rating_update_ballroom_system(session, game_id):
+    game_players = await get_active_game_players(session, game_id)
+    game = await get_game_by_id(session, game_id)
+    reg = game.registered
+    n = 1
+    while reg > n:
+        n *= 2
+    while n > 1:
+        if reg // n == len(game_players):
+            for game_player in game_players:
+                game_player.player.elo_change_per_match += 1
+            break
+        n = n // 2

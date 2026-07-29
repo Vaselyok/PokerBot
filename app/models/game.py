@@ -52,6 +52,9 @@ class Game(BaseModel):
 
     #poll = Column(JSONB, nullable=True)
     poll_id = Column(String, nullable=True)
+    poll_register_id = Column(String, nullable=True)
+    poll_exit_id = Column(String, nullable=True)
+    registered = Column(Integer, nullable=True)
     
 
 class GamePlayer(BaseModel):

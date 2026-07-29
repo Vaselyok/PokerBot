@@ -21,7 +21,7 @@ from app.schemas.game import GameAddRequest
 from app.schemas.table_player import TablePlayerPatch
 from app.models.game import GameStatus
 from app.bot.states.register import RegisterState
-from app.database.game import get_all_games, get_game_players, get_game_by_id
+from app.database.game import get_all_games, get_active_game_players, get_game_by_id
 from app.database.table import get_table_by_id
 from app.database.table_player import get_active_player_table, get_table_players_for_knockout, reward_survivors
 
@@ -213,17 +213,28 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
     thread_id = data["thread_id"]
 
     #создаем полл
-    poll_message = await bot.send_poll(
+    poll_register = await bot.send_poll(
         chat_id=int(chat_id),
         question=(
             f"{name} ({day})\n"
             f"Я секретарь турнира, зарегистрирую вас 🧐\n"
-            "Тыкните если точно придете или в момент прихода"
+            "Тыкните если точно будете ⬇️"
         ),
         options=[
             "✅ Пришел на турнир, дайте стол"
         ],
         is_anonymous=False,
+    )
+    poll_exit = await bot.send_poll(
+            chat_id=int(chat_id),
+            question=(
+                f"{name} ({day})\n"
+                f"Тебя выбили? Тыкай сюда ⬇️"
+            ),
+            options=[
+                "☠️ Забрали все, кроме моего достоинства"
+            ],
+            is_anonymous=False,
     )
     
     try:
@@ -234,7 +245,12 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
             chat_id=chat_id
         )
         user = await check_player_tg_id(session=session, tg_id=tg_user.id)
-        game = await create_game(session=session, item=item, user_id=user.id, poll_id=poll_message.poll.id)
+        game = await create_game(session=session,
+                                 item=item,
+                                 user_id=user.id,
+                                 poll_register_id=poll_register.poll.id,
+                                 poll_exit_id=poll_exit.poll.id,
+                                 registered=0)
 
     except ApplicationException as e:
         await message.answer(f"⚠️ {e.name}")
@@ -262,7 +278,7 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
                 f"{name}\n"
                 f"📆 Когда: {day}\n"
                 f"🕗 Во сколько: {time}\n"
-                f' 👉 <a href="{link}">зарегистрироваться</a>'
+                f' 👉 <a>регистрируйтесь в поле в основной беседе</a>' # тут ссылка была href="{link}" внутри <a ...>
             ),
             message_thread_id=thread_id
         )
@@ -478,30 +494,34 @@ async def cmd_finish(message: Message, session: AsyncSession):
             return
 
         game = games[0]
+        game.status = GameStatus.FINISHED
+        game.is_archived = True
+        
+        await session.flush()
+        return
+        # tables= await get_table_list(
+        #     session=session, limit=50, offset=0, game_id=game.id, organizer_id=None
+        # )
 
-        tables= await get_table_list(
-            session=session, limit=50, offset=0, game_id=game.id, organizer_id=None
-        )
+        # items = tables.items or []
 
-        items = tables.items or []
+        # if not items:
+        #     await message.answer("❌ No tables available")
+        #     return
 
-        if not items:
-            await message.answer("❌ No tables available")
-            return
+        # keyboard = InlineKeyboardMarkup(
+        #     inline_keyboard=[
+        #         [
+        #             InlineKeyboardButton(
+        #                 text=f"Table {t.number} ({t.total_participants or'?'} players)",
+        #                 callback_data=f"close_table:{t.id}",
+        #             )
+        #         ]
+        #         for t in items
+        #     ]
+        # )
 
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=f"Table {t.number} ({t.total_participants or'?'} players)",
-                        callback_data=f"close_table:{t.id}",
-                    )
-                ]
-                for t in items
-            ]
-        )
-
-        await message.answer("🪑 Choose table to finish:", reply_markup=keyboard)
+        # await message.answer("🪑 Choose table to finish:", reply_markup=keyboard)
 
     except ApplicationException as e:
         await message.answer(f"⚠️ {e.name}")
@@ -647,21 +667,20 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         game = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id)
         game = game.items[0]
 
-        tables = await get_table_list(session, 100, 0, game.id, organizer_id=user.id)
-        tables = tables.items
-        print("TABLES ITEMS")
-        while tables:
-            table_slepok = tables.pop()
-            table = await get_table_by_id(session, table_slepok.id)
-            #await delete_table(session, table.id, user.id)
-            table.finished_at = datetime.now(timezone.utc)
-            print("TABLE FINISHED")
-        await session.flush()
-        print("AFTER FLUSH")
-        players = await get_game_players(session, game.id, 1000, 0, sort=None, sorting_rules=None)
+        # логика ниже для случая многих столов
+        # tables = await get_table_list(session, 100, 0, game.id, organizer_id=user.id)
+        # tables = tables.items
+        # print("TABLES ITEMS")
+        # while tables:
+        #     table_slepok = tables.pop()
+        #     table = await get_table_by_id(session, table_slepok.id)
+        #     #await delete_table(session, table.id, user.id)
+        #     table.finished_at = datetime.now(timezone.utc)
+        #     print("TABLE FINISHED")
+        # await session.flush()
+        # print("AFTER FLUSH")
+        players = await get_active_game_players(session, game.id)
         print(f"PLAYERS GOT {len(players.items) or "SHIT"}")
-        players = sorted(players.items, key=lambda x: x.player.elo_change_per_match if x.player.elo_change_per_match else 0)
-        print(f"SORTED PLAYERS {len(players)}")
         data = await distribute_tables_for_shuffle(session, game.id, user.id, players)
         print("SHUFFLE DISTRIBUTED")
 

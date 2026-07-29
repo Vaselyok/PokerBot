@@ -100,8 +100,8 @@ async def patch_table_rights(session, table_id, user_id, player_id):
 
 
 async def leave_table(session, item, table_id, user_id, player_id, user_name):
-    table_player, user_rights = await patch_table_rights(session, table_id, user_id, player_id)
-
+    #table_player, user_rights = await patch_table_rights(session, table_id, user_id, player_id)
+    table_player = await get_table_player_by_id(session, table_id, user_id)
     finished_at = datetime.now(timezone.utc)
 
     if table_player.started_at > finished_at:
@@ -114,8 +114,8 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
     table_player.position = total_participants
 
 
-    if user_rights == "organizer":
-        raise ApplicationException("Organizer cannot mark elimination", 400)
+    # if user_rights == "organizer":
+    #     raise ApplicationException("Organizer cannot mark elimination", 400)
     
     table_player.eliminated_by_id = user_id
 
