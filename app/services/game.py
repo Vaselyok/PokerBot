@@ -126,7 +126,7 @@ async def join_game(session, game_id, player_id):
     try:
         print("BEFORE ADDING TO GAME")
         await add_to_game(session=session, game_id=game_id, player_id=player_id)
-        print("ADDED TO GAME")
+        print(f"\n GAME STATUS WHEN JOIN DURING GAME {game.status} \n ")
         if game.status == GameStatus.IN_ACTION:
             print("INSIDE IF")
             sorting_rules = {"number": ("number",)}
