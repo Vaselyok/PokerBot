@@ -7,7 +7,7 @@ from app.config.config import ApplicationException
 from app.schemas.common import to_schema
 from app.database.game import get_active_game_players, get_game_by_id
 from app.database.table import get_table_by_id, open_tables_count, get_active_tables
-from app.database.table_player import get_all_table_players_by_id, get_table_players_by_id
+from app.database.table_player import get_all_table_players_by_id, get_table_players_by_id, table_participants_count
 from app.services.game import check_game_by_id
 from app.schemas.score import EloHistoryResponse, TableResultResponse, EloTableResult
 from app.schemas.common import BaseShortResponse
@@ -61,14 +61,17 @@ async def close_table_and_update_elo(session, table_id, user_id):
     total_players = len(players)
     
     knockouts_map = defaultdict(list)
-
+    game = await check_game_by_id(session, table.game_id)
     for tp in table_players:
         if tp.eliminated_by_id:
             victim_elo = tp.player.elo
             knockouts_map[tp.eliminated_by_id].append(victim_elo)
         if tp.is_active:
+            # winner only
             tp.is_active = False
             tp.finished_at = datetime.now(timezone.utc) if not tp.finished_at else tp.finished_at
+            current_participants = await table_participants_count(session, table_id)
+            tp.player.elo_change_per_match = 100 * ((game.registered - current_participants)/(game.registered - 1)**(1.5))*(game.registered/15)**(0.2)
             sleep(0.01)
 
     for tp in table_players:
@@ -118,7 +121,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
         
 
 
-    game = await check_game_by_id(session, table.game_id)
+    
     open_tables = await open_tables_count(session, table)
     if open_tables == 1:
         game.status = GameStatus.FINISHED
