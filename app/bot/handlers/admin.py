@@ -346,7 +346,7 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
         # me = await bot.get_me()
         # bot_username = me.username
         poll_exit = await bot.send_poll(
-                    chat_id=int(game.chat_id),
+                    chat_id=int(data.chat_id),
                     question=(
                         f"Тебя выбили? Тыкай сюда ⬇️"
                     ),
