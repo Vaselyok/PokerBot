@@ -10,7 +10,6 @@ from app.database.game import (
 from app.database.table_player import (
     get_active_player_table,
     add_table_players,
-    add_table_players_no_reorder,
     add_table_player,
     get_all_table_players_by_id)
 from app.config.config import ApplicationException
