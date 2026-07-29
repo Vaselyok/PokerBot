@@ -116,7 +116,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
                 finished_at=tp.finished_at
             )
         )
-
+    print(f"\n⚠️⚠️⚠️ BEFORE check game by ID\n")
     game = await check_game_by_id(session, table.game_id)
     print(f"\n⚠️⚠️⚠️ BEFORE COUNT TABLES in ELO\n")
     open_tables = await open_tables_count(session, table)

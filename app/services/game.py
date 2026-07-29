@@ -31,6 +31,7 @@ class NewTablesDTO:
 
 
 async def check_game_by_id(session, id):
+    print(f"\n⚠️⚠️⚠️ BEFORE GET GAME BY ID\n")
     game = await get_game_by_id(session, id)
 
     if not game:
