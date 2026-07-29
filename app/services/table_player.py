@@ -108,12 +108,10 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
         raise ApplicationException("End-date cannot be less than start-date", 400)
 
     total_participants = await table_participants_count(session, table_id)
-    print(f"\n TOTAL PARTICIPANTS COUNTED {total_participants}\n")
     table_player.finished_at = finished_at
     table_player.is_active = False
     table_player.position = total_participants
     await session.flush()
-    print(f"\n    GONE THROUGH FLUSH\n")
     table_player = await get_table_player_by_id(session, table_id, user_id)
     print("\n     SESSION ", id(session), "\n")
     print(f"\nTABLE PLAYER IS ACTIVE {table_player}\n")
@@ -123,7 +121,7 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
     table_player.eliminated_by_id = user_id
 
     data = to_schema(TablePlayerKnockout, table_player)
-
+    print("\nSCHEMA CONSTRUCTED \n")
     data.table_participants = total_participants - 1
     data.eliminator_name = user_name
     return data
