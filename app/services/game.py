@@ -135,19 +135,19 @@ async def join_game(session, game_id, player_id):
             )
             print("GoT ACTIVE TABLES")
             tables = tables.items
-            table_ = None
-            min_change = 100
-            for table in tables:
-                curr_min = 0
-                print("BEFORE TAKE TABLE PLAYERS")
-                table_players = await get_all_table_players_by_id(session, table.id)
-                print("AFTER TAKE TABLE PLAYERS")
-                for player in table_players:
-                    curr_min += player.player.elo_change_per_match
-                print("AFTER CURR MIN")
-                if curr_min < min_change and len(table_players) < 2:
-                    table_ = table
-                    min_change = curr_min
+            table_ = tables[0]
+            # min_change = 100
+            # for table in tables:
+            #     curr_min = 0
+            #     print("BEFORE TAKE TABLE PLAYERS")
+            #     table_players = await get_all_table_players_by_id(session, table.id)
+            #     print("AFTER TAKE TABLE PLAYERS")
+            #     for player in table_players:
+            #         curr_min += player.player.elo_change_per_match
+            #     print("AFTER CURR MIN")
+            #     if curr_min < min_change and len(table_players) < 2:
+            #         table_ = table
+            #         min_change = curr_min
             print("BEFORE ADD TABLE")
             if table_:
                 table_player = await add_table_player(session, table_.id, player_id)
