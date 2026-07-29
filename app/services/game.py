@@ -131,7 +131,7 @@ async def join_game(session, game_id, player_id):
             print("INSIDE IF")
             sorting_rules = {"number": ("number",)}
             tables = await get_active_tables(
-                session=session, limit=100, offset=0, game_id=game_id, sorting_rules=sorting_rules
+                session=session, limit=1000, offset=0, game_id=game_id, sorting_rules=sorting_rules
             )
             print("GoT ACTIVE TABLES")
             tables = tables.items
@@ -152,6 +152,7 @@ async def join_game(session, game_id, player_id):
             if table_:
                 table_player = await add_table_player(session, table_.id, player_id)
                 text = f"🪑Твой стол #{table_.number}"
+                print(f"\nTABLE ID for newcommer{table_.id}\n")
             else:
                 text = f"Попроси организатора перемешать столы 🪑, время пришло"
             
@@ -266,19 +267,19 @@ async def distribute_tables(session, game_id, user_id):
     return await build_distribute_response(updated_game, fictitious_distribution)
 
 
-async def distribute_tables_for_shuffle(session, game_id, user_id, active_players):
+async def distribute_tables_for_shuffle(session, game_id, user_id, active_players, table_id):
     game = await check_game_by_id(session, game_id)
     print("GAME CHECKED")
 
     if game.organizer_id != user_id:
         raise ApplicationException("Only organizer can distribute tables", 400)
 
-    table = await get_my_table(session, user_id)
+    #table = await get_my_table(session, user_id)
     players_number = len(active_players)
-
+    print("\n Table GOT\n")
     tables_size_list = split_tables(players=players_number, max_per_table=2)
 
-    fictitious_distribution = await fictitious_table_players(active_players, tables_size_list, table.table_id)
+    fictitious_distribution = await fictitious_table_players(active_players, tables_size_list, table_id)
     await session.flush()
     updated_game = await get_game_by_id(session, game_id)
 
