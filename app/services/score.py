@@ -101,6 +101,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
         )
 
         print(f"\n⚠️⚠️⚠️ AFTER FIRST ELO UPDATE IN CYCLE\n")
+        print(f"\n⚠️⚠️⚠️ player.id:{player.id} player.name:{player.name} table.game_id:{table.game_id} elo_change:{elo_change} tp.position:{tp.position} tp.finished_at:{tp.finished_at}\n")
         elo_results.append(
             EloTableResult(
                 player=BaseShortResponse(
@@ -116,8 +117,8 @@ async def close_table_and_update_elo(session, table_id, user_id):
                 finished_at=tp.finished_at
             )
         )
-        print(f"\n⚠️⚠️⚠️ AFTER ADDING TO LIST\n")
         
+
     print(f"\n⚠️⚠️⚠️ BEFORE check game by ID\n")
     game = await check_game_by_id(session, table.game_id)
     print(f"\n⚠️⚠️⚠️ BEFORE COUNT TABLES in ELO\n")
