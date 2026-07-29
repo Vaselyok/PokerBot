@@ -108,13 +108,14 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
         raise ApplicationException("End-date cannot be less than start-date", 400)
 
     total_participants = await table_participants_count(session, table_id)
-    print(f"TOTAL PARTICIPANTS COUNTED {total_participants}")
+    print(f"\n TOTAL PARTICIPANTS COUNTED {total_participants}\n")
     table_player.finished_at = finished_at
     table_player.is_active = False
     table_player.position = total_participants
     await session.flush()
+    print(f"\n    GONE THROUGH FLUSH\n")
     table_player = await get_table_player_by_id(session, table_id, user_id)
-    print(f"TABLE PLAYER IS ACTIVE {table_player.is_active}")
+    print(f"\nTABLE PLAYER IS ACTIVE {table_player.is_active}\n")
     # if user_rights == "organizer":
     #     raise ApplicationException("Organizer cannot mark elimination", 400)
     
