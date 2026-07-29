@@ -133,6 +133,7 @@ async def poll_answer_handler(
                 table = await get_my_table(session=session, player_id=game_player.player.id)
                 table_id = table.table_id
                 item = TablePlayerPatch(eliminated=True)
+                print("\n BEFORE LEAVE_TABLE IN POLL ANSWER \n")
                 await leave_table(session, item, table_id, player.id, player.id, game_player.player.name)
                 await rating_update_ballroom_system(session, game.id)
             else:

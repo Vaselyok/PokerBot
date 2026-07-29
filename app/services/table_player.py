@@ -108,7 +108,7 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
         raise ApplicationException("End-date cannot be less than start-date", 400)
 
     total_participants = await table_participants_count(session, table_id)
-
+    print(f"TOTAL PARTICIPANTS COUNTED {total_participants}")
     table_player.finished_at = finished_at
     table_player.is_active = False
     table_player.position = total_participants
