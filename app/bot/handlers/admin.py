@@ -494,6 +494,7 @@ async def cmd_finish(message: Message, session: AsyncSession):
             return
         print("\n BEFORE GAME SUBSCRIPTION\n")
         game = games[0]
+        print(f"\n {game.name} \n")
         # g = await get_game_by_id(session, game.id)
         # g.staus = GameStatus.FINISHED
         # g.is_archived = True
@@ -504,7 +505,7 @@ async def cmd_finish(message: Message, session: AsyncSession):
         tables = await get_table_list(
             session=session, limit=50, offset=0, game_id=game.id, organizer_id=None
         )
-
+        print("\n AFTER GET TABLE LIST \n")
         items = tables.items or []
         if not items:
             await message.answer("❌ No tables available")
