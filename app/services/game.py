@@ -251,7 +251,7 @@ async def distribute_tables(session, game_id, user_id):
 
     for player in players.items:
         player.player.elo_change_per_match = 0
-    session.flush()
+    await session.flush()
 
     await add_table_players(session=session, table=new_table, size_list=tables_size_list, players=players)
     print("TABLE PLAYERS ADDED")
