@@ -123,7 +123,7 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
 
     data.table_participants = total_participants - 1
     data.eliminator_name = user_name
-
+    session.flush()
     return data
 
 
