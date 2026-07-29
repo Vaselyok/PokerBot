@@ -3,7 +3,7 @@ from app.database.table import (
     get_table_by_id,
     add_tables,
 )
-from app.database.table_player import table_participants_count
+from app.database.table_player import table_participants_count, get_all_table_players_by_id
 from app.config.config import ApplicationException
 from app.schemas.common import to_schema
 from app.schemas.table import TableListResponse, TableResponse, TableCountResponse
@@ -22,6 +22,10 @@ async def get_table_list(session, limit, offset, game_id, organizer_id=None):
 
     tables = await get_active_tables(session, limit, offset, game_id, sorting_rules)
 
+    tb_players = await get_all_table_players_by_id(session, tables[0].id)
+    tb_players = tb_players if tb_players else []
+    print(f"\n NUM PARTICIPANTS {len(tb_players)}\n")
+    
     result = []
     for t in tables.items:
         data = to_schema(TableCountResponse, t)

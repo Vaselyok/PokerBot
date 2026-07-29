@@ -505,7 +505,6 @@ async def cmd_finish(message: Message, session: AsyncSession):
         )
 
         items = tables.items or []
-
         if not items:
             await message.answer("❌ No tables available")
             return
@@ -587,10 +586,13 @@ async def cb_close_table(callback: CallbackQuery, bot: Bot, session: AsyncSessio
     table_id = int(callback.data.split(":")[1])
 
     try:
+        print(f"\n⚠️⚠️⚠️ BEFORE CHECK_TG_ID\n")
         user = await check_player_tg_id(session=session, tg_id=tg_user.id)
+        print(f"\n⚠️⚠️⚠️ BEFORE CLOSE_TABLE_AND_UPDATE_ELO\n")
         result = await close_table_and_update_elo(
             session=session, table_id=table_id, user_id=user.id
         )
+        print(f"\n⚠️⚠️⚠️ AFTER CLOSE_TABLE_AND_UPDATE_ELO\n")
     except ApplicationException as e:
         await callback.answer(e.name, show_alert=True)
         return 
@@ -598,7 +600,7 @@ async def cb_close_table(callback: CallbackQuery, bot: Bot, session: AsyncSessio
     except Exception as e:
         await callback.answer(f"⚠️ Server error - {e}", show_alert=True)
         return
-
+    print(f"\n⚠️⚠️⚠️ BEFORE FORMAT RESULTS\n")
     text = format_table_result(result)
 
     await callback.message.edit_text(text)

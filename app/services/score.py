@@ -50,10 +50,10 @@ async def close_table_and_update_elo(session, table_id, user_id):
 
     if table.game.organizer_id != user_id:
         raise ApplicationException("Only organizer can close table", 400)
-
+    print(f"\n⚠️⚠️⚠️ BEFORE GET_ALL_TABLE_PLAYERS\n")
     table_players = await get_all_table_players_by_id(session, table_id)
     # await assign_positions(table_players)
-
+    print(f"\n⚠️⚠️⚠️ AFTER CLOSE_TABLE_AND_UPDATE_ELO\n")
     if not table_players:
         raise ApplicationException("No players at table", 400)
 
@@ -71,7 +71,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
             tp.is_active = False
             tp.finished_at = datetime.now(timezone.utc) if not tp.finished_at else tp.finished_at
             sleep(0.01)
-
+    print(f"\n⚠️⚠️⚠️ BEFORE ELO UPDATE IN CYCLE\n")
     for tp in table_players:
         player = tp.player
 
@@ -84,7 +84,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
 
         player.elo = elo_after
         player.elo_change_per_match = 0
-
+        print(f"\n⚠️⚠️⚠️ BEFORE FIRST ELO UPDATE IN CYCLE\n")
         await create_elo_history(
             session=session,
             player_id=player.id,
@@ -100,7 +100,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
             players_total=total_players,
         )
 
-
+        print(f"\n⚠️⚠️⚠️ AFTER FIRST ELO UPDATE IN CYCLE\n")
         elo_results.append(
             EloTableResult(
                 player=BaseShortResponse(
@@ -118,18 +118,19 @@ async def close_table_and_update_elo(session, table_id, user_id):
         )
 
     game = await check_game_by_id(session, table.game_id)
-
+    print(f"\n⚠️⚠️⚠️ BEFORE COUNT TABLES in ELO\n")
     open_tables = await open_tables_count(session, table)
-
+    print(f"\n⚠️⚠️⚠️ AFTER COUNT TABLES in ELO\n")
     if open_tables == 1:
         game.status = GameStatus.FINISHED
         game.is_archived = True
 
     table.finished_at = datetime.now(timezone.utc)
+    print(f"\n⚠️⚠️⚠️ GAME FINISHED BEFORE FLUSH\n")
     await session.flush()
-
+    print(f"\n⚠️⚠️⚠️ BEFORE SORT OF RESULTS\n")
     elo_results.sort(key=lambda x: x.finished_at, reverse=True)
-
+    print(f"\n⚠️⚠️⚠️ BEFORE RETURN\n")
     return TableResultResponse(
         id=table.id,
         number=table.number,
