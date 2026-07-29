@@ -494,8 +494,9 @@ async def cmd_finish(message: Message, session: AsyncSession):
             return
 
         game = games[0]
-        game.status = GameStatus.FINISHED
-        game.is_archived = True
+        g = await get_game_by_id(session, game.id)
+        g.staus = GameStatus.FINISHED
+        g.is_archived = True
         
         await session.flush()
         return
