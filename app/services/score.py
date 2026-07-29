@@ -6,8 +6,8 @@ from app.database.score import (
 from app.config.config import ApplicationException
 from app.schemas.common import to_schema
 from app.database.game import get_active_game_players, get_game_by_id
-from app.database.table import get_table_by_id, open_tables_count
-from app.database.table_player import get_all_table_players_by_id
+from app.database.table import get_table_by_id, open_tables_count, get_active_tables
+from app.database.table_player import get_all_table_players_by_id, get_table_players_by_id
 from app.services.game import check_game_by_id
 from app.schemas.score import EloHistoryResponse, TableResultResponse, EloTableResult
 from app.schemas.common import BaseShortResponse
@@ -223,7 +223,10 @@ async def close_table_and_update_elo(session, table_id, user_id):
 #         current_position += 1
 
 async def rating_update_ballroom_system(session, game_id):
-    game_players = await get_active_game_players(session, game_id)
+    print("\n     SESSION ", id(session), "\n")
+    tables = await get_active_tables(session, 1000, 0, game_id, None)
+    game_players = await get_table_players_by_id(session, tables.items[0].id)
+    #game_players = await get_active_game_players(session, game_id)
     print(f"    GOT ACTIVE PLAYERS")
     print(f"    #NUM ACTIVE {len(game_players)}")
     game = await get_game_by_id(session, game_id)

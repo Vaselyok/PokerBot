@@ -115,6 +115,7 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
     await session.flush()
     print(f"\n    GONE THROUGH FLUSH\n")
     table_player = await get_table_player_by_id(session, table_id, user_id)
+    print("\n     SESSION ", id(session), "\n")
     print(f"\nTABLE PLAYER IS ACTIVE {table_player}\n")
     # if user_rights == "organizer":
     #     raise ApplicationException("Organizer cannot mark elimination", 400)
