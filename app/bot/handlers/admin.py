@@ -225,17 +225,17 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
         ],
         is_anonymous=False,
     )
-    poll_exit = await bot.send_poll(
-            chat_id=int(chat_id),
-            question=(
-                f"{name} ({day})\n"
-                f"Тебя выбили? Тыкай сюда ⬇️"
-            ),
-            options=[
-                "☠️ Забрали все, кроме моего достоинства"
-            ],
-            is_anonymous=False,
-    )
+    # poll_exit = await bot.send_poll(
+    #         chat_id=int(chat_id),
+    #         question=(
+    #             f"{name} ({day})\n"
+    #             f"Тебя выбили? Тыкай сюда ⬇️"
+    #         ),
+    #         options=[
+    #             "☠️ Забрали все, кроме моего достоинства"
+    #         ],
+    #         is_anonymous=False,
+    # )
     
     try:
         
@@ -249,7 +249,6 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
                                  item=item,
                                  user_id=user.id,
                                  poll_register_id=poll_register.poll.id,
-                                 poll_exit_id=poll_exit.poll.id,
                                  registered=0)
 
     except ApplicationException as e:
@@ -343,27 +342,38 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
         game = await get_game_by_id(session, game_id)
         game.telegram_chat.message_with_tables_id = message.message_id
         game.telegram_chat.message_with_tables = "\n".join(text)
-        me = await bot.get_me()
-        bot_username = me.username
-        
-        link = f"https://t.me/{bot_username}?start=knockout"
-        keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="💀 Выбил кого-то — тыкай сюда",
-                        url=link,
-                    )
-                ]
-            ]
-        )
+        # me = await bot.get_me()
+        # bot_username = me.username
+        poll_exit = await bot.send_poll(
+                    chat_id=int(game.chat_id),
+                    question=(
+                        f"Тебя выбили? Тыкай сюда ⬇️"
+                    ),
+                    options=[
+                        "☠️ Забрали все, кроме моего достоинства"
+                    ],
+                    is_anonymous=False,
+            )
+        game.poll_exit_id = poll_exit.poll.id
+        await session.flush()
+        # link = f"https://t.me/{bot_username}?start=knockout"
+        # keyboard = InlineKeyboardMarkup(
+        # inline_keyboard=[
+        #         [
+        #             InlineKeyboardButton(
+        #                 text="💀 Выбил кого-то — тыкай сюда",
+        #                 url=link,
+        #             )
+        #         ]
+        #     ]
+        # )
 
-        await bot.send_message(
-            chat_id=int(data.chat_id),
-            text="Фиксация выбиваний",
-            reply_markup=keyboard,
-            message_thread_id=data.thread_id or None,
-        )
+        # await bot.send_message(
+        #     chat_id=int(data.chat_id),
+        #     text="Фиксация выбиваний",
+        #     reply_markup=keyboard,
+        #     message_thread_id=data.thread_id or None,
+        # )
     await callback.answer()
 
 
