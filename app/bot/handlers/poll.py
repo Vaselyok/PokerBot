@@ -132,11 +132,12 @@ async def poll_answer_handler(
         game_player = await is_player_in_game(session, player.id, game.id)
         
         if game_player is not None:
-            print(f"\n ⚠️⚠️⚠️game_player is ACTIVE {game_player.player.is_active} \n")
-            if game_player.player.is_active:
+            table = await get_my_table(session=session, player_id=game_player.player.id)
+            table_id = table.table_id
+            tp = get_table_player_by_id(session, table_id, player.id)
+            print(f"\n ⚠️⚠️⚠️game_player is ACTIVE {tp.is_active} \n")
+            if tp.is_active:
                 print(f"⚠️⚠️⚠️ DOING LEAVE TABLE")
-                table = await get_my_table(session=session, player_id=game_player.player.id)
-                table_id = table.table_id
                 item = TablePlayerPatch(eliminated=True)
                 print("\n ⚠️⚠️⚠️ BEFORE LEAVE_TABLE IN POLL ANSWER \n")
                 await leave_table(session, item, table_id, player.id, player.id, game_player.player.name)
