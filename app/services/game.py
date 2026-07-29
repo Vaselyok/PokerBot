@@ -73,8 +73,8 @@ async def get_game_id(session, id):
     return to_schema(GameResponse, game)
 
 
-async def create_game(session, item, user_id, poll_id):
-    new_game = await add_game(session, item, user_id, poll_id)
+async def create_game(session, item, user_id, poll_register_id, poll_exit_id, registered):
+    new_game = await add_game(session, item, user_id, poll_register_id, poll_exit_id, registered)
 
     return to_schema(BaseShortResponse, new_game)
 

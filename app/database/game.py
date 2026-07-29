@@ -103,9 +103,15 @@ async def is_player_in_game(session, player_id, game_id):
     return result
 
 
-async def add_game(session, item, user_id, poll_id):
+async def add_game(session, item, user_id, poll_register_id, poll_exit_id, registered):
     game = Game(
-        name=item.name, start_time=item.start_time, telegram_chat_id=item.chat_id, organizer_id=user_id, poll_id=poll_id
+        name=item.name,
+        start_time=item.start_time,
+        telegram_chat_id=item.chat_id,
+        organizer_id=user_id,
+        poll_register_id=poll_register_id,
+        poll_exit_id=poll_exit_id,
+        registered=registered
     )
     session.add(game)
     await session.flush()
