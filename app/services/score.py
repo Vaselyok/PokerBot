@@ -224,8 +224,11 @@ async def close_table_and_update_elo(session, table_id, user_id):
 
 async def rating_update_ballroom_system(session, game_id):
     game_players = await get_active_game_players(session, game_id)
+    print(f"    GOT ACTIVE PLAYERS")
+    print(f"    #NUM ACTIVE {len(game_players)}")
     game = await get_game_by_id(session, game_id)
     reg = game.registered
+    print(f"REGISTERED FOR GAME {reg}")
     n = 1
     while reg > n:
         n *= 2
