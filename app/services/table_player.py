@@ -112,7 +112,7 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
     table_player.finished_at = finished_at
     table_player.is_active = False
     table_player.position = total_participants
-
+    await session.flush()
 
     # if user_rights == "organizer":
     #     raise ApplicationException("Organizer cannot mark elimination", 400)
@@ -123,7 +123,6 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
 
     data.table_participants = total_participants - 1
     data.eliminator_name = user_name
-    session.flush()
     return data
 
 

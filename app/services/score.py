@@ -238,4 +238,4 @@ async def rating_update_ballroom_system(session, game_id):
                 game_player.player.elo_change_per_match += 1
             break
         n = n // 2
-    session.flush()
+    await session.flush()
