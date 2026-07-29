@@ -341,6 +341,7 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
             message_thread_id=data.thread_id or None
         )
         game = await get_game_by_id(session, game_id)
+        game.status = GameStatus.IN_ACTION
         game.telegram_chat.message_with_tables_id = message.message_id
         game.telegram_chat.message_with_tables = "\n".join(text)
         # me = await bot.get_me()
@@ -682,7 +683,6 @@ async def cmd_shuffle(message: Message, bot: Bot, session: AsyncSession):
         )
         g = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id)
         game = g.items[0]
-        print(f"# GAMES {len(g.items)}")
         # логика ниже для случая многих столов
         # tables = await get_table_list(session, 100, 0, game.id, organizer_id=user.id)
         # tables = tables.items
