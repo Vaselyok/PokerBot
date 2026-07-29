@@ -19,13 +19,10 @@ async def get_table_list(session, limit, offset, game_id, organizer_id=None):
 
     if organizer_id is not None and organizer_id != game.organizer_id:
         raise ApplicationException("Only organizer can view tables", 403)
-
     tables = await get_active_tables(session, limit, offset, game_id, sorting_rules)
-
-    tb_players = await get_all_table_players_by_id(session, tables[0].id)
-    tb_players = tb_players if tb_players else []
+    tb_players = await get_all_table_players_by_id(session, tables.items[0].id)
     print(f"\n NUM PARTICIPANTS {len(tb_players)}\n")
-    
+
     result = []
     for t in tables.items:
         data = to_schema(TableCountResponse, t)
