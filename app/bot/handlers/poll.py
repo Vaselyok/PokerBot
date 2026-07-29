@@ -131,7 +131,10 @@ async def poll_answer_handler(
         print(f"⚠️⚠️⚠️ POLL EXIT REALIZATION")
         game_player = await is_player_in_game(session, player.id, game.id)
         print(f"⚠️⚠️⚠️ CHECK PLAYER IN GAME")
+        if game_player is None:
+            print(f"\n ⚠️⚠️⚠️game_player is NONE \n")
         if game_player:
+            print(f"\n ⚠️⚠️⚠️game_player is ACTIVE {game_player.player.is_active} \n")
             if game_player.player.is_active:
                 print(f"⚠️⚠️⚠️ DOING LEAVE TABLE")
                 table = await get_my_table(session=session, player_id=game_player.player.id)
