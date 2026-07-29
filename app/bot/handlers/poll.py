@@ -134,7 +134,7 @@ async def poll_answer_handler(
         if game_player is not None:
             table = await get_my_table(session=session, player_id=game_player.player.id)
             table_id = table.table_id
-            tp = get_table_player_by_id(session, table_id, player.id)
+            tp = await get_table_player_by_id(session, table_id, player.id)
             print(f"\n ⚠️⚠️⚠️game_player is ACTIVE {tp.is_active} \n")
             if tp.is_active:
                 print(f"⚠️⚠️⚠️ DOING LEAVE TABLE")
