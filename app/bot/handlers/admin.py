@@ -216,7 +216,7 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
     poll_register = await bot.send_poll(
         chat_id=int(chat_id),
         question=(
-            f"{name} ({day})\n"
+            f"<b>{name}</b> ({day})\n"
             f"Я секретарь турнира, зарегистрирую вас 🧐\n"
             "Тыкните если точно будете ⬇️"
         ),
@@ -275,7 +275,7 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
             chat_id=int(chat_id),
             text=(
                 f"<b>📢 Турнир!</b>\n"
-                f"{name}\n"
+                f"<b>{name}</b>\n"
                 f"📆 Когда: {day}\n"
                 f"🕗 Во сколько: {time}\n"
                 f' 👉 <a>регистрируйтесь в поле в основной беседе</a>' # тут ссылка была href="{link}" внутри <a ...>
