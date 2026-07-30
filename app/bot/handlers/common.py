@@ -60,8 +60,8 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot, session: Asyn
 @router.message(Command("rating"))
 async def cmd_rating(message: Message, session: AsyncSession):
     user = message.from_user
-    await reset_all_players_elo(session, 1000)
-    return
+    #await reset_all_players_elo(session, 1000)
+
     if not user:
         return
 
