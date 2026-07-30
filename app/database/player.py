@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 from .common import order, get_all_and_total, apply_sorting
 from app.models.player import Player
@@ -51,3 +51,13 @@ async def add_player(session, item, tg_id):
     session.add(player)
     await session.flush()
     return player
+
+
+async def reset_all_players_elo(session, elo: float = 1000):
+    await session.execute(
+        update(Player).values(
+            elo=elo,
+            elo_change_per_match=0,
+        )
+    )
+    await session.commit()

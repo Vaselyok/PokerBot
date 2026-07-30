@@ -8,6 +8,7 @@ from app.bot.utils.formatting import leaderboard_text
 from .player import cmd_join, cmd_knockout
 from .admin import cmd_register
 from app.services.player import check_player_tg_id, get_leaderboard
+from app.database.player import reset_all_players_elo
 
 router = Router(name="common")
 
@@ -59,12 +60,13 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot, session: Asyn
 @router.message(Command("rating"))
 async def cmd_rating(message: Message, session: AsyncSession):
     user = message.from_user
+    await reset_all_players_elo(session, 1000)
     if not user:
         return
 
     try:
         player = await check_player_tg_id(session=session, tg_id=user.id)
-        data = await get_leaderboard(session=session, limit=50, offset=0)
+        data = await get_leaderboard(session=session, limit=100, offset=0)
 
     except ApplicationException as e:
         await message.answer(f"⚠️ {e.name}")
