@@ -61,6 +61,7 @@ async def cmd_start(message: Message, state: FSMContext, bot: Bot, session: Asyn
 async def cmd_rating(message: Message, session: AsyncSession):
     user = message.from_user
     await reset_all_players_elo(session, 1000)
+    return
     if not user:
         return
 

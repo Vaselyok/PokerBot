@@ -60,4 +60,4 @@ async def reset_all_players_elo(session, elo: float = 1000):
             elo_change_per_match=0,
         )
     )
-    await session.commit()
+    await session.flush()
