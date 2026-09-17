@@ -277,7 +277,7 @@ async def distribute_tables_for_shuffle(session, game_id, user_id, active_player
     #table = await get_my_table(session, user_id)
     players_number = len(active_players)
     print("\n Table GOT\n")
-    tables_size_list = split_tables(players=players_number, max_per_table=8)
+    tables_size_list = split_tables(players=players_number, max_per_table=6)
 
     fictitious_distribution = await fictitious_table_players(active_players, tables_size_list, table_id)
     await session.flush()

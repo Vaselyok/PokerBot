@@ -223,6 +223,8 @@ async def process_game_date(message: Message, state: FSMContext, bot: Bot, sessi
             f"🕗 Во сколько: {time}\n"
              "\n"
             f"Я секретарь турнира, зарегистрирую вас 🧐\n"
+            "\n"
+            "\n"
             "Тыкните если точно будете ⬇️"
         ),
         options=[
