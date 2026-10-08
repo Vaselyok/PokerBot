@@ -14,3 +14,4 @@ aiogram
 httpx
 numpy
 aiohttp-socks
+sqlalchemy[asyncio]
