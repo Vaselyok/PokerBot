@@ -353,17 +353,17 @@ async def cb_start_game(callback: CallbackQuery, bot: Bot, session: AsyncSession
         game.telegram_chat.message_with_tables = "\n".join(text)
         # me = await bot.get_me()
         # bot_username = me.username
-        poll_exit = await bot.send_poll(
-                    chat_id=int(data.chat_id),
-                    question=(
-                        f"Тебя выбили? Тыкай сюда ⬇️"
-                    ),
-                    options=[
-                        "☠️ Забрали все, кроме моего достоинства"
-                    ],
-                    is_anonymous=False,
-            )
-        game.poll_exit_id = poll_exit.poll.id
+        # poll_exit = await bot.send_poll(
+        #             chat_id=int(data.chat_id),
+        #             question=(
+        #                 f"Тебя выбили? Тыкай сюда ⬇️"
+        #             ),
+        #             options=[
+        #                 "☠️ Забрали все, кроме моего достоинства"
+        #             ],
+        #             is_anonymous=False,
+        #     )
+        # game.poll_exit_id = poll_exit.poll.id
         await session.flush()
         # link = f"https://t.me/{bot_username}?start=knockout"
         # keyboard = InlineKeyboardMarkup(
@@ -878,6 +878,38 @@ async def cb_create_game(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.answer()
     await callback.message.edit_text("🆗 Nothing has been changed")
+
+
+@router.message(Command("final_poll"))
+async def send_final_table_poll(message: Message, bot: Bot, session: AsyncSession):
+    tg_user = message.from_user
+    if tg_user is None:
+        return
+    try:
+        user = await check_player_tg_id(
+            session=session,
+            tg_id=tg_user.id,
+        )
+        g = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user.id)
+        game = g.items[0]
+        if not game:
+            await message.reply("⚠️ Активная игра в этом чате не найдена.")
+            return
+    except Exception as e:
+        await message.answer(f"⚠️ Server error - {e}")
+        return
+
+    # Отправляем опрос на вылет из финалки
+    poll_msg = await bot.send_poll(
+        chat_id=game.telegram_chat_id,
+        question="🏆 Финальный стол! Тебя выбили? Отмечайся ⬇️",
+        options=["☠️ Выбыл из финалки"],
+        is_anonymous=False,
+    )
+
+    # Привязываем poll_id к игре
+    game.poll_exit_id = poll_msg.poll.id
+    await session.commit()
 
 
 @router.message(Command("reset_shit"))

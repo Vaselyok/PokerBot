@@ -71,7 +71,7 @@ async def close_table_and_update_elo(session, table_id, user_id):
             tp.is_active = False
             tp.finished_at = datetime.now(timezone.utc) if not tp.finished_at else tp.finished_at
             current_participants = await table_participants_count(session, table_id)
-            tp.player.elo_change_per_match = 100 * (((game.registered - current_participants)/(game.registered - 1))**(1.5))*(game.registered/15)**(0.2)
+            tp.player.elo_change_per_match = 0.0#100 * (((game.registered - current_participants)/(game.registered - 1))**(1.5))*(game.registered/15)**(0.2)
             sleep(0.01)
 
     for tp in table_players:
@@ -96,8 +96,8 @@ async def close_table_and_update_elo(session, table_id, user_id):
             elo_change=round(elo_change, 2),
             bounty_bonus=0.0,
             chips_bonus=0.0,
-            position=tp.position if tp.position else 1,
-            chips=0 if tp.position and tp.position > 1 else 100000,
+            position=tp.position if tp.position else 9,
+            chips=total_players*5000 if tp.position and tp.position == 1 else 0,
             players_total=total_players,
         )
 
@@ -113,8 +113,8 @@ async def close_table_and_update_elo(session, table_id, user_id):
                 elo_change=round(elo_change, 2),
                 bounty_bonus=0.0,
                 chips_bonus=0.0,
-                position=tp.position if tp.position else 1,
-                chips=0 if tp.position and tp.position > 1 else 100000,
+                position=tp.position if tp.position else 9,
+                chips=total_players*5000 if tp.position and tp.position == 1 else 0,
                 finished_at=tp.finished_at
             )
         )
