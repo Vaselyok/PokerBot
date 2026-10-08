@@ -4,7 +4,7 @@ from app.schemas.table_player import TablePlayerResponse, TablePlayerKnockout
 from app.services.player import check_player_by_id
 from app.services.game import check_game_by_id
 from datetime import datetime, timezone
-from app.database.game import get_all_games
+from app.database.game import get_all_games, get_active_game
 from app.database.table import get_table_by_id
 from app.database.table_player import (
     get_table_players_by_id,
@@ -105,8 +105,7 @@ async def leave_table(session, item, table_id, user_id, player_id, user_name):
     #table_player, user_rights = await patch_table_rights(session, table_id, user_id, player_id)
     table_player = await get_table_player_by_id(session, table_id, user_id)
     finished_at = datetime.now(timezone.utc)
-    g = await get_all_games(session, 100, 0, GameStatus.IN_ACTION, user_id)
-    game = g.items[0]
+    game = await get_active_game(session)
 
     if table_player.started_at > finished_at:
         raise ApplicationException("End-date cannot be less than start-date", 400)
